@@ -6,7 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AsistenciaController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\ComunicadoController;
-use App\Http\Controllers\ConfiguracionController;
+use App\Http\Controllers\ConfiguracionController;   
 
 // Autenticación
 Route::get('/', function () {
@@ -37,3 +37,10 @@ Route::resource('comunicados', ComunicadoController::class)->only(['index', 'sto
 // ==================== MÓDULO CONFIGURACIÓN ====================
 Route::get('configuracion', [ConfiguracionController::class, 'index'])->name('configuracion.index');
 Route::post('configuracion', [ConfiguracionController::class, 'store'])->name('configuracion.store');
+
+// 1. Ruta personalizada para cambiar de estado (PATCH)
+Route::patch('estudiantes/{estudiante}/toggle-estado', [EstudianteController::class, 'toggleEstado'])
+    ->name('estudiantes.toggleEstado');
+
+// 2. Rutas Resource habituales para estudiantes
+Route::resource('estudiantes', EstudianteController::class);
