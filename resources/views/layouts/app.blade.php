@@ -107,35 +107,35 @@
                     </li>
 
                     <li class="nav-item">
-                        <a href="{{ route('estudiantes') }}" class="nav-link {{ request()->routeIs('estudiantes') ? 'active' : '' }}">
+                        <a href="{{ route('estudiantes.index') }}" class="nav-link {{ request()->routeIs('estudiantes.*') ? 'active' : '' }}">
                             <i class="nav-icon bi bi-people"></i>
                             <p>Estudiantes</p>
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a href="{{ route('asistencias') }}" class="nav-link {{ request()->routeIs('asistencias') ? 'active' : '' }}">
+                        <a href="{{ route('asistencias.index') }}" class="nav-link {{ request()->routeIs('asistencias.*') ? 'active' : '' }}">
                             <i class="nav-icon bi bi-calendar-check"></i>
                             <p>Asistencias</p>
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a href="{{ route('reportes') }}" class="nav-link {{ request()->routeIs('reportes') ? 'active' : '' }}">
+                        <a href="{{ route('reportes.index') }}" class="nav-link {{ request()->routeIs('reportes.*') ? 'active' : '' }}">
                             <i class="nav-icon bi bi-bar-chart"></i>
                             <p>Reportes</p>
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a href="{{ route('comunicados') }}" class="nav-link {{ request()->routeIs('comunicados') ? 'active' : '' }}">
+                        <a href="{{ route('comunicados.index') }}" class="nav-link {{ request()->routeIs('comunicados.*') ? 'active' : '' }}">
                             <i class="nav-icon bi bi-megaphone"></i>
                             <p>Comunicados</p>
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a href="{{ route('configuracion') }}" class="nav-link {{ request()->routeIs('configuracion') ? 'active' : '' }}">
+                        <a href="{{ route('configuracion.index') }}" class="nav-link {{ request()->routeIs('configuracion.*') ? 'active' : '' }}">
                             <i class="nav-icon bi bi-gear"></i>
                             <p>Configuración</p>
                         </a>

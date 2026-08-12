@@ -4,6 +4,16 @@
 @section('page_title', 'Gestión de Estudiantes')
 
 @section('content')
+<!-- Alertas de éxito o error -->
+@if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show shadow-sm mb-3" role="alert">
+        <i class="bi bi-check-circle-fill mr-2"></i> {{ session('success') }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+@endif
+
 <!-- Encabezado de la sección -->
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
@@ -24,25 +34,25 @@
                     <div class="input-group-prepend">
                         <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
                     </div>
-                    <input type="text" class="form-control" placeholder="Buscar por nombre o código...">
+                    <input type="text" id="buscarEstudiante" class="form-control" placeholder="Buscar por nombre, código o CI...">
                 </div>
             </div>
             <div class="col-md-3">
-                <select class="form-control custom-select">
-                    <option selected>Todos los cursos</option>
-                    <option>1ro Secundaria</option>
-                    <option>2do Secundaria</option>
-                    <option>3ro Secundaria</option>
-                    <option>4to Secundaria</option>
-                    <option>5to Secundaria</option>
-                    <option>6to Secundaria</option>
+                <select id="filtroCurso" class="form-control custom-select">
+                    <option value="">Todos los cursos</option>
+                    <option value="1ro Secundaria">1ro Secundaria</option>
+                    <option value="2do Secundaria">2do Secundaria</option>
+                    <option value="3ro Secundaria">3ro Secundaria</option>
+                    <option value="4to Secundaria">4to Secundaria</option>
+                    <option value="5to Secundaria">5to Secundaria</option>
+                    <option value="6to Secundaria">6to Secundaria</option>
                 </select>
             </div>
             <div class="col-md-3">
-                <select class="form-control custom-select">
-                    <option selected>Todos los estados</option>
-                    <option>Activo</option>
-                    <option>Inactivo</option>
+                <select id="filtroEstado" class="form-control custom-select">
+                    <option value="">Todos los estados</option>
+                    <option value="activo">Activo</option>
+                    <option value="inactivo">Inactivo</option>
                 </select>
             </div>
         </div>
@@ -53,7 +63,7 @@
 <div class="card card-outline card-success shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle">
+            <table class="table table-hover mb-0 align-middle" id="tablaEstudiantes">
                 <thead style="background-color: #e8f5e9;">
                     <tr>
                         <th class="pl-4">Código</th>
@@ -80,7 +90,9 @@
                             </td>
                             <td>
                                 @if($estudiante->qr_imagen)
-                                    <img src="{{ asset('storage/'.$estudiante->qr_imagen) }}" width="55" alt="QR">
+                                    <a href="{{ asset('storage/'.$estudiante->qr_imagen) }}" target="_blank">
+                                        <img src="{{ asset('storage/'.$estudiante->qr_imagen) }}" width="45" height="45" alt="QR" class="img-thumbnail">
+                                    </a>
                                 @else
                                     <span class="text-muted">—</span>
                                 @endif
@@ -93,7 +105,7 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                <a href="{{ route('estudiantes.show', $estudiante) }}" class="btn btn-sm btn-outline-primary mr-1" title="Ver">
+                                <a href="{{ route('estudiantes.show', $estudiante) }}" class="btn btn-sm btn-outline-primary mr-1" title="Ver Carnet / QR">
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 <a href="{{ route('estudiantes.edit', $estudiante) }}" class="btn btn-sm btn-outline-success mr-1" title="Editar">
@@ -106,7 +118,7 @@
                                         <i class="bi bi-{{ $estudiante->estado === 'activo' ? 'pause' : 'play' }}-circle"></i>
                                     </button>
                                 </form>
-                                <form action="{{ route('estudiantes.destroy', $estudiante) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Seguro que deseas eliminar este estudiante?')">
+                                <form action="{{ route('estudiantes.destroy', $estudiante) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Seguro que deseas eliminar permanentemente a este estudiante?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">

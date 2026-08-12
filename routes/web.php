@@ -2,40 +2,38 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EstudianteController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\AsistenciaController;
+use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\ComunicadoController;
+use App\Http\Controllers\ConfiguracionController;
 
+// Autenticación
 Route::get('/', function () {
     return view('auth.login');
 })->name('login');
 
-Route::get('/dashboard', function () {
-    return view('admin.dashboard');
-})->name('dashboard');
+// Panel Principal (Dashboard con datos reales de BD)
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-// ==================== ESTUDIANTES ====================
-Route::get('/estudiantes', [EstudianteController::class, 'index'])->name('estudiantes');
-Route::get('/estudiantes/create', [EstudianteController::class, 'create'])->name('estudiantes.create');
-Route::post('/estudiantes', [EstudianteController::class, 'store'])->name('estudiantes.store');
+// ==================== MÓDULO ESTUDIANTES ====================
+// Genera automáticamente: index, create, store, show, edit, update, destroy
+Route::resource('estudiantes', EstudianteController::class);
 
-// =====================================================
-
-Route::get('/asistencias', function () {
-    return view('admin.asistencias');
-})->name('asistencias');
-
-Route::get('/reportes', function () {
-    return view('admin.reportes');
-})->name('reportes');
-
-Route::get('/comunicados', function () {
-    return view('admin.comunicados');
-})->name('comunicados');
-
-Route::get('/configuracion', function () {
-    return view('admin.configuracion');
-})->name('configuracion');
-
-Route::get('/estudiantes/{estudiante}', [EstudianteController::class, 'show'])->name('estudiantes.show');
-Route::get('/estudiantes/{estudiante}/edit', [EstudianteController::class, 'edit'])->name('estudiantes.edit');
-Route::put('/estudiantes/{estudiante}', [EstudianteController::class, 'update'])->name('estudiantes.update');
-Route::delete('/estudiantes/{estudiante}', [EstudianteController::class, 'destroy'])->name('estudiantes.destroy');
+// Ruta personalizada para cambiar estado (Activo/Inactivo)
 Route::patch('/estudiantes/{estudiante}/toggle', [EstudianteController::class, 'toggleEstado'])->name('estudiantes.toggle');
+
+// ==================== OTROS MÓDULOS ====================
+// ==================== MÓDULO ASISTENCIAS ====================
+Route::get('/asistencias', [AsistenciaController::class, 'index'])->name('asistencias.index');
+Route::get('/asistencias/{asistencia}', [AsistenciaController::class, 'show'])->name('asistencias.show');
+
+// ==================== MÓDULO REPORTES ====================
+Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
+
+// ==================== MÓDULO COMUNICADOS ====================
+Route::resource('comunicados', ComunicadoController::class)->only(['index', 'store', 'destroy']);
+
+// ==================== MÓDULO CONFIGURACIÓN ====================
+Route::get('configuracion', [ConfiguracionController::class, 'index'])->name('configuracion.index');
+Route::post('configuracion', [ConfiguracionController::class, 'store'])->name('configuracion.store');
