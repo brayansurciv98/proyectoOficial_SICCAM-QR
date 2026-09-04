@@ -17,7 +17,7 @@
             @forelse($docente->cursos as $c)
                 <span class="badge badge-success">{{ $c->curso }}{{ $c->paralelo }}</span>
             @empty
-                <span class="text-muted">Sin cursos asignados</span>
+                <span class="text-muted">No existe asignacion de cursos asignados</span>
             @endforelse
         </p>
     </div>
