@@ -77,7 +77,7 @@
                             <select name="estado" class="form-control custom-select" onchange="document.getElementById('formFiltros').submit()">
                                 <option value="">Todos los estados</option>
                                 <option value="presente" {{ request('estado') == 'presente' ? 'selected' : '' }}>Presente</option>
-                                <option value="tardanza" {{ request('estado') == 'tardanza' ? 'selected' : '' }}>Tardanza</option>
+                                <option value="tardanza" {{ request('estado') == 'tardanza' ? 'selected' : '' }}>Retraso</option>
                                 <option value="ausente" {{ request('estado') == 'ausente' ? 'selected' : '' }}>Ausente</option>
                             </select>
                         </div>
