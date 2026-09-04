@@ -145,7 +145,7 @@
                                 @if($asistencia->estado === 'presente')
                                     <span class="badge badge-success px-2 py-1"><i class="bi bi-check-circle mr-1"></i>Presente</span>
                                 @elseif($asistencia->estado === 'tardanza')
-                                    <span class="badge badge-warning px-2 py-1"><i class="bi bi-clock-history mr-1"></i>Tardanza</span>
+                                    <span class="badge badge-warning px-2 py-1"><i class="bi bi-clock-history mr-1"></i>Retraso</span>
                                 @else
                                     <span class="badge badge-danger px-2 py-1"><i class="bi bi-x-circle mr-1"></i>Ausente</span>
                                 @endif
