@@ -8,7 +8,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <h5 class="mb-1 font-weight-bold text-dark">Registro de Asistencias</h5>
-        <small class="text-muted">Fecha consultada: {{ \Carbon\Carbon::parse($fecha)->format('d/m/Y') }}</small>
+        <small class="text-muted">Fecha Consultada: {{ \Carbon\Carbon::parse($fecha)->format('d/m/Y') }}</small>
     </div>
     <div>
         <button class="btn btn-outline-success btn-sm mr-1">
