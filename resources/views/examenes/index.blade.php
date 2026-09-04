@@ -12,7 +12,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h5 class="mb-0 font-weight-bold">Listado de exámenes</h5>
     <a href="{{ route('examenes.create') }}" class="btn btn-verde">
-        <i class="bi bi-plus-lg"></i> Programar examen
+        <i class="bi bi-plus-lg"></i> Programar exámen
     </a>
 </div>
 
