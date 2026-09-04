@@ -71,7 +71,7 @@
         <div class="col-12 mb-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-info text-white font-weight-bold">
-                    Contacto de Tutores / Apoderados
+                    Contacto de Tutores
                 </div>
                 <div class="card-body">
                     @if($asistencia->estudiante->tutores && $asistencia->estudiante->tutores->count() > 0)
