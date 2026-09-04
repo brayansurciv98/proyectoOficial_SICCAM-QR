@@ -143,7 +143,7 @@
                     @empty
                         <tr>
                             <td colspan="6" class="text-center py-4 text-muted">
-                                No se encontraron datos para generar el reporte.
+                                No existen datos para generar el reporte.
                             </td>
                         </tr>
                     @endforelse
