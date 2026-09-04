@@ -19,7 +19,7 @@
     @csrf
 
     <div class="card card-outline card-success shadow-sm">
-        <div class="card-header"><strong>Datos del examen</strong></div>
+        <div class="card-header"><strong>Información del examen</strong></div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6 form-group">
