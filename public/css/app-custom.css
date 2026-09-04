@@ -1,0 +1,107 @@
+:root {
+    --verde-principal: #1a5f2a;
+    --verde-oscuro: #0d3b16;
+    --verde-claro: #2e7d32;
+}
+
+.main-sidebar {
+    background: linear-gradient(180deg, var(--verde-principal), var(--verde-oscuro)) !important;
+}
+
+.brand-link {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+    padding: 0.85rem 0.5rem !important;
+}
+
+.brand-link .brand-image {
+    float: none !important;
+    margin: 0 !important;
+    max-height: 42px !important;
+    background: #fff;
+    padding: 2px;
+    border-radius: 50%;
+}
+
+.brand-link .brand-text {
+    margin-left: 0 !important;
+    font-size: 1rem;
+    line-height: 1.1;
+}
+
+.brand-link .brand-subtitle {
+    display: block;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 400;
+}
+
+.sidebar-mini.sidebar-collapse .main-sidebar .brand-link .brand-text {
+    display: none !important;
+}
+
+.sidebar-mini.sidebar-collapse .main-sidebar .brand-link {
+    justify-content: center;
+    width: 4.6rem !important;
+}
+
+.sidebar-mini.sidebar-collapse .main-sidebar .brand-link .brand-image {
+    margin: 0 auto !important;
+}
+
+.sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link.active,
+.sidebar-light-primary .nav-sidebar > .nav-item > .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+    border-left: 4px solid #fff;
+}
+
+.btn-verde {
+    background-color: var(--verde-claro) !important;
+    color: #fff !important;
+    border: none;
+}
+
+.btn-verde:hover {
+    background-color: var(--verde-oscuro) !important;
+    color: #fff !important;
+}
+
+.content-wrapper {
+    position: relative;
+    background-color: #f4f6f9 !important;
+    min-height: 100vh;
+}
+
+.content-wrapper::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('/images/Rene_Barrientos_Ortuno.jpg');
+    background-repeat: no-repeat;
+    background-position: center 30%;
+    background-size: 320px;
+    opacity: 0.10;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.content-wrapper > * {
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes highlightAnimation {
+    0% { background-color: #d4edda; }
+    100% { background-color: transparent; }
+}
+
+.row-realtime {
+    animation: highlightAnimation 3s ease-out;
+}

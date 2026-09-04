@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Tutor extends Model
+class Tutor extends Authenticatable
 {
+    use HasApiTokens;
+
     protected $table = 'tutores';
 
     protected $fillable = [
@@ -15,13 +19,23 @@ class Tutor extends Model
         'telefono',
         'email',
         'password',
+        'clave_inicial',
         'estado',
     ];
 
-    public function estudiantes()
+    protected $hidden = [
+        'password',
+        'clave_inicial',
+    ];
+
+    public function estudiantes(): BelongsToMany
     {
-        return $this->belongsToMany(Estudiante::class, 'estudiante_tutor', 'tutor_id', 'estudiante_id')
-                    ->withPivot('parentesco', 'es_principal')
-                    ->withTimestamps();
+        return $this->belongsToMany(
+            Estudiante::class,
+            'estudiante_tutor',
+            'tutor_id',
+            'estudiante_id'
+        )->withPivot('parentesco', 'es_principal')
+         ->withTimestamps();
     }
 }

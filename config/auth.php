@@ -38,11 +38,20 @@ return [
     */
 
     'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
-        ],
+    'web' => [
+        'driver' => 'session',
+        'provider' => 'users',
     ],
+    'tutor' => [
+        'driver' => 'sanctum',
+        'provider' => 'tutores',
+    ],
+    'docente' => [
+        'driver' => 'session',
+        'provider' => 'docentes',
+    ],
+
+],
 
     /*
     |--------------------------------------------------------------------------
@@ -61,17 +70,21 @@ return [
     |
     */
 
-    'providers' => [
-        'users' => [
-            'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', User::class),
-        ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+   'providers' => [
+    'users' => [
+        'driver' => 'eloquent',
+        'model' => App\Models\User::class,
     ],
+    'tutores' => [
+        'driver' => 'eloquent',
+        'model' => App\Models\Tutor::class,
+    ],
+
+    'docentes' => [
+        'driver' => 'eloquent',
+        'model' => App\Models\Docente::class,
+    ],
+],
 
     /*
     |--------------------------------------------------------------------------

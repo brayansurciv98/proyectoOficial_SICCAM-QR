@@ -23,13 +23,25 @@
     </div>
 </div>
 
+@if($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show">
+        <strong>Error:</strong>
+        <ul class="mb-0">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+@endif
+
 <form action="{{ route('estudiantes.update', $estudiante) }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
 
     <div class="row">
 
-        {{-- ===================== COLUMNA IZQUIERDA: DATOS DEL ESTUDIANTE ===================== --}}
+        {{-- ===================== COLUMNA IZQUIERDA ===================== --}}
         <div class="col-md-8">
             <div class="card card-success card-outline shadow-sm mb-4">
                 <div class="card-header">
@@ -39,17 +51,24 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <!-- Código del Estudiante (Deshabilitado/Lectura si es generado automáticamente) -->
+                        <!-- Código -->
                         <div class="col-md-6 form-group">
                             <label for="codigo_estudiante" class="font-weight-bold text-dark">Código de Estudiante</label>
-                            <input type="text" class="form-control bg-light" id="codigo_estudiante" value="{{ $estudiante->codigo_estudiante }}" readonly>
+                            <input type="text" class="form-control bg-light" id="codigo_estudiante"
+                                   value="{{ $estudiante->codigo_estudiante }}" readonly>
                             <small class="form-text text-muted">El código identificador único no se puede modificar.</small>
                         </div>
 
-                        <!-- Cédula de Identidad -->
+                        <!-- CI -->
                         <div class="col-md-6 form-group">
                             <label for="ci" class="font-weight-bold text-dark">Cédula de Identidad (CI)</label>
-                            <input type="text" name="ci" id="ci" class="form-control @error('ci') is-invalid @enderror" value="{{ old('ci', $estudiante->ci) }}" placeholder="Ej. 8765432">
+                            <input type="text" name="ci" id="ci"
+                                   class="form-control @error('ci') is-invalid @enderror"
+                                   value="{{ old('ci', $estudiante->ci) }}"
+                                   inputmode="numeric"
+                                   pattern="^[0-9]+$"
+                                   title="Solo números"
+                                   placeholder="Ej. 8765432">
                             @error('ci')
                                 <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
@@ -58,7 +77,12 @@
                         <!-- Nombres -->
                         <div class="col-md-6 form-group">
                             <label for="nombres" class="font-weight-bold text-dark">Nombres <span class="text-danger">*</span></label>
-                            <input type="text" name="nombres" id="nombres" class="form-control @error('nombres') is-invalid @enderror" value="{{ old('nombres', $estudiante->nombres) }}" required>
+                            <input type="text" name="nombres" id="nombres"
+                                   class="form-control @error('nombres') is-invalid @enderror"
+                                   value="{{ old('nombres', $estudiante->nombres) }}"
+                                   pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$"
+                                   title="Solo letras y espacios"
+                                   required>
                             @error('nombres')
                                 <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
@@ -67,7 +91,12 @@
                         <!-- Apellidos -->
                         <div class="col-md-6 form-group">
                             <label for="apellidos" class="font-weight-bold text-dark">Apellidos <span class="text-danger">*</span></label>
-                            <input type="text" name="apellidos" id="apellidos" class="form-control @error('apellidos') is-invalid @enderror" value="{{ old('apellidos', $estudiante->apellidos) }}" required>
+                            <input type="text" name="apellidos" id="apellidos"
+                                   class="form-control @error('apellidos') is-invalid @enderror"
+                                   value="{{ old('apellidos', $estudiante->apellidos) }}"
+                                   pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$"
+                                   title="Solo letras y espacios"
+                                   required>
                             @error('apellidos')
                                 <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
@@ -75,17 +104,30 @@
 
                         <!-- Curso -->
                         <div class="col-md-4 form-group">
-                            <label for="curso" class="font-weight-bold text-dark">Curso / Grado <span class="text-danger">*</span></label>
-                            <input type="text" name="curso" id="curso" class="form-control @error('curso') is-invalid @enderror" value="{{ old('curso', $estudiante->curso) }}" placeholder="Ej. 1º Secundaria" required>
+                            <label for="curso" class="font-weight-bold text-dark">Curso <span class="text-danger">*</span></label>
+                            <input type="number" name="curso" id="curso"
+                                   class="form-control @error('curso') is-invalid @enderror"
+                                   value="{{ old('curso', $estudiante->curso) }}"
+                                   min="1" max="6" step="1"
+                                   inputmode="numeric"
+                                   placeholder="1 a 6"
+                                   required>
                             @error('curso')
                                 <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
+                            <small class="form-text text-muted">Secundaria: solo del 1 al 6</small>
                         </div>
 
                         <!-- Paralelo -->
-                        <div class="col-md-4 form-group">
-                            <label for="paralelo" class="font-weight-bold text-dark">Paralelo</label>
-                            <input type="text" name="paralelo" id="paralelo" class="form-control @error('paralelo') is-invalid @enderror" value="{{ old('paralelo', $estudiante->paralelo) }}" placeholder="Ej. A">
+                        <div class="form-group">
+                            <label for="paralelo">Paralelo</label>
+                            <select name="paralelo" id="paralelo"
+                                    class="form-control @error('paralelo') is-invalid @enderror">
+                                <option value="">Seleccione...</option>
+                                <option value="A" {{ old('paralelo', $estudiante->paralelo ?? '') == 'A' ? 'selected' : '' }}>A</option>
+                                <option value="B" {{ old('paralelo', $estudiante->paralelo ?? '') == 'B' ? 'selected' : '' }}>B</option>
+                                <option value="C" {{ old('paralelo', $estudiante->paralelo ?? '') == 'C' ? 'selected' : '' }}>C</option>
+                            </select>
                             @error('paralelo')
                                 <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
@@ -98,16 +140,19 @@
                                 <option value="">-- Seleccionar --</option>
                                 <option value="M" {{ old('genero', $estudiante->genero) == 'M' ? 'selected' : '' }}>Masculino</option>
                                 <option value="F" {{ old('genero', $estudiante->genero) == 'F' ? 'selected' : '' }}>Femenino</option>
+                                <option value="Otro" {{ old('genero', $estudiante->genero) == 'Otro' ? 'selected' : '' }}>Otro</option>
                             </select>
                             @error('genero')
                                 <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
                         </div>
 
-                        <!-- Fecha de Nacimiento -->
+                        <!-- Fecha de nacimiento -->
                         <div class="col-md-6 form-group mb-0">
                             <label for="fecha_nacimiento" class="font-weight-bold text-dark">Fecha de Nacimiento</label>
-                            <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="form-control @error('fecha_nacimiento') is-invalid @enderror" value="{{ old('fecha_nacimiento', $estudiante->fecha_nacimiento) }}">
+                            <input type="date" name="fecha_nacimiento" id="fecha_nacimiento"
+                                   class="form-control @error('fecha_nacimiento') is-invalid @enderror"
+                                   value="{{ old('fecha_nacimiento', $estudiante->fecha_nacimiento) }}">
                             @error('fecha_nacimiento')
                                 <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
@@ -129,7 +174,7 @@
                 </div>
             </div>
 
-            <!-- Datos del Tutor Asignado -->
+            <!-- Datos del Tutor -->
             @php $tutor = $estudiante->tutores->first(); @endphp
             <div class="card card-success card-outline shadow-sm mb-4">
                 <div class="card-header">
@@ -140,19 +185,27 @@
                 <div class="card-body">
                     <input type="hidden" name="tutor_id" value="{{ $tutor->id ?? '' }}">
                     <div class="row">
-                        <!-- Nombres del Tutor -->
+                        <!-- Nombres tutor -->
                         <div class="col-md-6 form-group">
                             <label for="tutor_nombres" class="font-weight-bold text-dark">Nombres del Tutor</label>
-                            <input type="text" name="tutor_nombres" id="tutor_nombres" class="form-control @error('tutor_nombres') is-invalid @enderror" value="{{ old('tutor_nombres', $tutor->nombres ?? '') }}">
+                            <input type="text" name="tutor_nombres" id="tutor_nombres"
+                                   class="form-control @error('tutor_nombres') is-invalid @enderror"
+                                   value="{{ old('tutor_nombres', $tutor->nombres ?? '') }}"
+                                   pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$"
+                                   title="Solo letras y espacios">
                             @error('tutor_nombres')
                                 <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
                         </div>
 
-                        <!-- Apellidos del Tutor -->
+                        <!-- Apellidos tutor -->
                         <div class="col-md-6 form-group">
                             <label for="tutor_apellidos" class="font-weight-bold text-dark">Apellidos del Tutor</label>
-                            <input type="text" name="tutor_apellidos" id="tutor_apellidos" class="form-control @error('tutor_apellidos') is-invalid @enderror" value="{{ old('tutor_apellidos', $tutor->apellidos ?? '') }}">
+                            <input type="text" name="tutor_apellidos" id="tutor_apellidos"
+                                   class="form-control @error('tutor_apellidos') is-invalid @enderror"
+                                   value="{{ old('tutor_apellidos', $tutor->apellidos ?? '') }}"
+                                   pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$"
+                                   title="Solo letras y espacios">
                             @error('tutor_apellidos')
                                 <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
@@ -161,28 +214,38 @@
                         <!-- Parentesco -->
                         <div class="col-md-4 form-group">
                             <label for="tutor_parentesco" class="font-weight-bold text-dark">Parentesco</label>
-                            <select name="tutor_parentesco" id="tutor_parentesco" class="form-control @error('tutor_parentesco') is-invalid @enderror">
-                                @php $parentescoActual = $tutor->pivot->parentesco ?? $tutor->parentesco ?? ''; @endphp
+                            <select name="tutor_parentesco" id="tutor_parentesco" class="form-control">
+                                @php $parentescoActual = $tutor->pivot->parentesco ?? ''; @endphp
                                 <option value="Padre" {{ old('tutor_parentesco', $parentescoActual) == 'Padre' ? 'selected' : '' }}>Padre</option>
                                 <option value="Madre" {{ old('tutor_parentesco', $parentescoActual) == 'Madre' ? 'selected' : '' }}>Madre</option>
                                 <option value="Tutor Legal" {{ old('tutor_parentesco', $parentescoActual) == 'Tutor Legal' ? 'selected' : '' }}>Tutor Legal</option>
+                                <option value="Tutor" {{ old('tutor_parentesco', $parentescoActual) == 'Tutor' ? 'selected' : '' }}>Tutor</option>
                                 <option value="Otro" {{ old('tutor_parentesco', $parentescoActual) == 'Otro' ? 'selected' : '' }}>Otro</option>
                             </select>
                         </div>
 
-                        <!-- Teléfono / WhatsApp -->
+                        <!-- Teléfono -->
                         <div class="col-md-4 form-group">
                             <label for="tutor_telefono" class="font-weight-bold text-dark">Teléfono / Celular</label>
-                            <input type="text" name="tutor_telefono" id="tutor_telefono" class="form-control @error('tutor_telefono') is-invalid @enderror" value="{{ old('tutor_telefono', $tutor->telefono ?? '') }}" placeholder="Ej. 76543210">
+                            <input type="text" name="tutor_telefono" id="tutor_telefono"
+                                   class="form-control @error('tutor_telefono') is-invalid @enderror"
+                                   value="{{ old('tutor_telefono', $tutor->telefono ?? '') }}"
+                                   inputmode="numeric"
+                                   pattern="^[0-9]+$"
+                                   title="Solo números"
+                                   placeholder="Ej. 76543210">
                             @error('tutor_telefono')
                                 <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
                         </div>
 
-                        <!-- Correo Electrónico -->
+                        <!-- Email -->
                         <div class="col-md-4 form-group">
                             <label for="tutor_email" class="font-weight-bold text-dark">Correo Electrónico</label>
-                            <input type="email" name="tutor_email" id="tutor_email" class="form-control @error('tutor_email') is-invalid @enderror" value="{{ old('tutor_email', $tutor->email ?? '') }}" placeholder="ejemplo@correo.com">
+                            <input type="email" name="tutor_email" id="tutor_email"
+                                   class="form-control @error('tutor_email') is-invalid @enderror"
+                                   value="{{ old('tutor_email', $tutor->email ?? '') }}"
+                                   placeholder="ejemplo@correo.com">
                             @error('tutor_email')
                                 <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
@@ -192,10 +255,8 @@
             </div>
         </div>
 
-        {{-- ===================== COLUMNA DERECHA: QR Y ACCIONES ===================== --}}
+        {{-- ===================== COLUMNA DERECHA: QR ===================== --}}
         <div class="col-md-4">
-            
-            <!-- Estado actual del QR -->
             <div class="card card-success card-outline shadow-sm text-center mb-4">
                 <div class="card-header">
                     <h3 class="card-title font-weight-bold text-dark float-none">
@@ -205,9 +266,9 @@
                 <div class="card-body">
                     <div class="p-3 bg-light rounded d-inline-block border mb-3">
                         @if($estudiante->qr_imagen)
-                            <img src="{{ asset('storage/'.$estudiante->qr_imagen) }}" 
-                                 alt="Código QR de {{ $estudiante->nombres }}" 
-                                 class="img-fluid" 
+                            <img src="{{ asset('storage/'.$estudiante->qr_imagen) }}"
+                                 alt="Código QR de {{ $estudiante->nombres }}"
+                                 class="img-fluid"
                                  style="max-width: 160px; height: auto;">
                         @else
                             <div class="text-muted p-3">
@@ -217,18 +278,18 @@
                         @endif
                     </div>
 
-                    <!-- Casilla para Regenerar QR -->
                     <div class="custom-control custom-checkbox text-left mt-2">
                         <input type="checkbox" class="custom-control-input" id="regenerar_qr" name="regenerar_qr" value="1">
                         <label class="custom-control-label text-dark font-weight-bold" for="regenerar_qr">
                             Regenerar Código QR
                         </label>
-                        <small class="form-text text-muted">Marca esta casilla si deseas volver a generar la imagen del código QR con los datos actualizados.</small>
+                        <small class="form-text text-muted">
+                            Marca esta casilla si deseas volver a generar la imagen del código QR con los datos actualizados.
+                        </small>
                     </div>
                 </div>
             </div>
 
-            <!-- Card de Guardar Cambios -->
             <div class="card card-success card-outline shadow-sm">
                 <div class="card-body">
                     <button type="submit" class="btn btn-success btn-block font-weight-bold py-2 mb-2">
@@ -239,10 +300,13 @@
                     </a>
                 </div>
             </div>
-
         </div>
 
     </div>
 </form>
+
+@push('scripts')
+    <script src="{{ asset('js/validaciones-estudiante.js') }}"></script>
+@endpush
 
 @endsection

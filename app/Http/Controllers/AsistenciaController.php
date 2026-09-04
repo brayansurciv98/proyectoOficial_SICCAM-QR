@@ -11,25 +11,21 @@ class AsistenciaController extends Controller
 {
     public function index(Request $request)
     {
-        // Fecha por defecto es hoy si no se envía filtro
         $fecha = $request->get('fecha', Carbon::today()->format('Y-m-d'));
-        
+
         $query = Asistencia::with('estudiante')
             ->whereDate('fecha', $fecha);
 
-        // Filtro por curso a través de la relación de estudiante
         if ($request->filled('curso')) {
             $query->whereHas('estudiante', function ($q) use ($request) {
                 $q->where('curso', $request->curso);
             });
         }
 
-        // Filtro por estado
         if ($request->filled('estado')) {
             $query->where('estado', $request->estado);
         }
 
-        // Filtro por nombre o código de estudiante
         if ($request->filled('buscar')) {
             $buscar = $request->buscar;
             $query->whereHas('estudiante', function ($q) use ($buscar) {
@@ -39,7 +35,7 @@ class AsistenciaController extends Controller
             });
         }
 
-        $asistencias = $query->orderBy('hora_entrada', 'desc')->paginate(15);
+        $asistencias = $query->orderBy('hora_ingreso', 'desc')->paginate(15);
 
         return view('asistencias.index', compact('asistencias', 'fecha'));
     }
@@ -48,5 +44,76 @@ class AsistenciaController extends Controller
     {
         $asistencia->load('estudiante.tutores');
         return view('asistencias.show', compact('asistencia'));
+    }
+
+    public function manual(Request $request)
+    {
+        $curso = $request->get('curso');
+        $paralelo = $request->get('paralelo');
+        $fecha = $request->get('fecha', Carbon::today()->format('Y-m-d'));
+
+        $estudiantes = collect();
+        $asistenciasHoy = collect();
+
+        if ($curso) {
+            $estudiantes = Estudiante::where('curso', $curso)
+                ->when($paralelo, fn ($q) => $q->where('paralelo', $paralelo))
+                ->where('estado', 'activo')
+                ->orderBy('apellidos')
+                ->orderBy('nombres')
+                ->get();
+
+            $asistenciasHoy = Asistencia::whereDate('fecha', $fecha)
+                ->whereIn('estudiante_id', $estudiantes->pluck('id'))
+                ->get()
+                ->keyBy('estudiante_id');
+        }
+
+        return view('asistencias.manual', compact(
+            'estudiantes', 'curso', 'paralelo', 'fecha', 'asistenciasHoy'
+        ));
+    }
+
+    public function storeManual(Request $request)
+    {
+        $request->validate([
+            'fecha'     => ['required', 'date'],
+            'estados'   => ['required', 'array'],
+            'estados.*' => ['nullable', 'in:presente,tardanza,falta'],
+        ]);
+
+        $fecha = $request->fecha;
+        $hora  = now()->format('H:i:s');
+        $registrados = 0;
+
+        foreach ($request->estados as $estudianteId => $estado) {
+            if (!$estado) {
+                continue;
+            }
+
+            $existe = Asistencia::where('estudiante_id', $estudianteId)
+                ->whereDate('fecha', $fecha)
+                ->first();
+
+            if ($existe) {
+                $existe->update([
+                    'estado'       => $estado,
+                    'hora_ingreso' => $existe->hora_ingreso ?? $hora,
+                    'observacion'  => 'Registro manual',
+                ]);
+            } else {
+                Asistencia::create([
+                    'estudiante_id' => $estudianteId,
+                    'fecha'         => $fecha,
+                    'hora_ingreso'  => $hora,
+                    'estado'        => $estado,
+                    'observacion'   => 'Registro manual',
+                ]);
+            }
+
+            $registrados++;
+        }
+
+        return back()->with('success', "Se actualizaron {$registrados} registros de asistencia.");
     }
 }
