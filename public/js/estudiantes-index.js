@@ -1,6 +1,15 @@
 // public/js/estudiantes-index.js
 
 $(document.ready || function() {
+
+
+    // SOLUCIÓN AL FONDO OSCURO EN MODALES DENTRO DE TABLAS:
+    // Mueve el modal al <body> justo antes de mostrarlo para corregir el superpuesto (z-index)
+    $(document).on('show.bs.modal', '.modal', function () {
+        $(this).appendTo('body');
+    });
+
+
     // 1. Desplegar automático del Modal de Credenciales si existe en el DOM
     var modalCredenciales = $('#modalCredencialesTutor');
     if (modalCredenciales.length) {

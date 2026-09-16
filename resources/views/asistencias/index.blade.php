@@ -32,7 +32,7 @@
                 <span class="badge badge-success px-2 py-1"><i class="bi bi-broadcast mr-1"></i> EN VIVO</span>
             </div>
             <div class="card-body p-2 text-center bg-dark d-flex align-items-center justify-content-center" style="min-height: 260px;">
-                <img src="http://10.48.41.8:8080/video"
+                <img src="http://192.168.100.103:8080/video"
                      class="img-fluid rounded border border-secondary" 
                      alt="Transmisión en vivo de la Raspberry Pi"
                      onerror="this.onerror=null; this.src='https://via.placeholder.com/640x480/1a1a1a/ffffff?text=Cámara+Raspberry+Pi+Desconectada';"

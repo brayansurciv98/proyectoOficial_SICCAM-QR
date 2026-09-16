@@ -13,6 +13,16 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="{{ asset('css/app-custom.css') }}">
 
+    <!-- CORRECCIÓN DE MODALES (CSS) -->
+    <style>
+        .modal-backdrop {
+            z-index: 1040 !important;
+        }
+        .modal {
+            z-index: 1050 !important;
+        }
+    </style>
+
     @vite(['resources/js/app.js'])
     @stack('styles')
 </head>
@@ -159,22 +169,6 @@
                                 <p>Mi Panel</p>
                             </a>
                         </li>
-
-                        {{-- Cuando existan estas rutas, se activan solas --}}
-                        {{-- 
-                        <li class="nav-item">
-                            <a href="{{ route('docente.asistencias.manual') }}" class="nav-link {{ request()->routeIs('docente.asistencias*') ? 'active' : '' }}">
-                                <i class="nav-icon bi bi-pencil-square"></i>
-                                <p>Asistencia Manual</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('docente.examenes.index') }}" class="nav-link {{ request()->routeIs('docente.examenes*') ? 'active' : '' }}">
-                                <i class="nav-icon bi bi-journal-check"></i>
-                                <p>Exámenes</p>
-                            </a>
-                        </li>
-                        --}}
                     @endif
 
                     <li class="nav-header">CUENTA</li>
@@ -219,15 +213,27 @@
     </footer>
 </div>
 
+<!-- SCRIPTS DE NAVEGADOR -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap4.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<!-- CORRECCIÓN JS GLOBAL PARA REUBICAR MODALES -->
+<script>
+    $(document).ready(function() {
+        $(document).on('show.bs.modal', '.modal', function () {
+            $(this).appendTo('body');
+        });
+    });
+</script>
+
 <script src="{{ asset('js/estudiantes.js') }}"></script>
 <script src="{{ asset('js/asistencias-realtime.js') }}"></script>
 
+@yield('js')
 @stack('scripts')
 </body>
 </html>
