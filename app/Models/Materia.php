@@ -12,4 +12,9 @@ class Materia extends Model
     {
         return $this->hasMany(Docente::class);
     }
+
+    public function horarios()
+    {
+        return $this->hasMany(Horario::class);
+    }
 }

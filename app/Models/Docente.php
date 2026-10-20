@@ -27,4 +27,9 @@ class Docente extends Authenticatable
     {
         return $this->hasMany(Examen::class);
     }
+
+    public function horarios()
+    {
+        return $this->hasMany(Horario::class);
+    }
 }
