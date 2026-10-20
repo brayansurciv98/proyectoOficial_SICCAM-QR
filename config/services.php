@@ -26,6 +26,13 @@ return [
     // Clave de la Raspberry Pi
     'raspberry' => [
         'token' => env('RASPBERRY_TOKEN', 'siccam_qr_secret_key_2026'),
+        // Video en vivo de la Pi, p. ej. http://192.168.100.60:8080/video
+                'stream_url' => env('RASPBERRY_STREAM_URL'),
+    ],
+
+    // Cuenta de servicio de Firebase (se descarga en la Parte 2)
+    'firebase' => [
+        'credenciales' => storage_path('app/private/firebase-credenciales.json'),
     ],
 
 ];

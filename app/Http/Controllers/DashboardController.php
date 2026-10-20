@@ -18,16 +18,17 @@ class DashboardController extends Controller
 
         // 2. Asistencias registradas el día de hoy (A tiempo / Presentes)
         $asistenciasHoy = Asistencia::whereDate('fecha', $hoy)
-            ->whereIn('estado', ['presente', 'a_tiempo'])
+            ->where('estado', Asistencia::PRESENTE)
             ->count();
 
         // 3. Tardanzas de hoy
         $tardanzasHoy = Asistencia::whereDate('fecha', $hoy)
-            ->where('estado', 'atraso')
+            ->where('estado', Asistencia::TARDANZA)
             ->count();
 
-        // 4. Ausencias de hoy (Estudiantes activos que no registraron marcas hoy)
+        // 4. Ausencias de hoy (activos sin ingreso hoy, incluye los marcados "ausente")
         $estudiantesPresentesHoy = Asistencia::whereDate('fecha', $hoy)
+            ->whereIn('estado', [Asistencia::PRESENTE, Asistencia::TARDANZA])
             ->pluck('estudiante_id')
             ->unique();
 

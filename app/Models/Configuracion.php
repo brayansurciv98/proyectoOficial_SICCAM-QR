@@ -16,4 +16,14 @@ class Configuracion extends Model
         'valor',
         'grupo',
     ];
+
+    /**
+     * Devuelve el valor guardado para una clave o el valor por defecto.
+     */
+    public static function valor(string $clave, mixed $default = null): mixed
+    {
+        $valor = static::where('clave', $clave)->value('valor');
+
+        return ($valor === null || $valor === '') ? $default : $valor;
+    }
 }

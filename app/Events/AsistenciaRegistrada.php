@@ -33,4 +33,26 @@ class AsistenciaRegistrada implements ShouldBroadcastNow
     {
         return 'AsistenciaRegistrada';
     }
+
+    // El canal es público: enviar solo lo que muestra el panel (sin CI, fecha de nacimiento ni qr_data)
+    public function broadcastWith(): array
+    {
+        $estudiante = $this->asistencia->estudiante;
+
+        return [
+            'asistencia' => [
+                'id'           => $this->asistencia->id,
+                'fecha'        => (string) $this->asistencia->fecha,
+                'hora_ingreso' => $this->asistencia->hora_ingreso,
+                'estado'       => $this->asistencia->estado,
+                'estudiante'   => [
+                    'codigo_estudiante' => $estudiante?->codigo_estudiante,
+                    'nombres'           => $estudiante?->nombres,
+                    'apellidos'         => $estudiante?->apellidos,
+                    'curso'             => $estudiante?->curso,
+                    'paralelo'          => $estudiante?->paralelo,
+                ],
+            ],
+        ];
+    }
 }

@@ -101,15 +101,16 @@
                             <div class="row">
                                 <div class="col-md-4 form-group">
                                     <label>Hora de Ingreso (Puntual)</label>
-                                    <input type="time" name="hora_ingreso" class="form-control" value="{{ $config['hora_ingreso'] ?? '07:45' }}" required>
+                                    <input type="time" name="hora_ingreso" class="form-control" value="{{ $config['hora_ingreso'] ?? '13:30' }}" required>
+                                    <small class="form-text text-muted">Presente hasta esta hora + la tolerancia (pestaña Parámetros); después, tardanza.</small>
                                 </div>
                                 <div class="col-md-4 form-group">
                                     <label>Hora Límite de Atraso</label>
-                                    <input type="time" name="hora_limite_atraso" class="form-control" value="{{ $config['hora_limite_atraso'] ?? '08:15' }}" required>
+                                    <input type="time" name="hora_limite_atraso" class="form-control" value="{{ $config['hora_limite_atraso'] ?? '13:45' }}" required>
                                 </div>
                                 <div class="col-md-4 form-group">
                                     <label>Cierre de Registro</label>
-                                    <input type="time" name="hora_cierre_registro" class="form-control" value="{{ $config['hora_cierre_registro'] ?? '09:00' }}" required>
+                                    <input type="time" name="hora_cierre_registro" class="form-control" value="{{ $config['hora_cierre_registro'] ?? '18:45' }}" required>
                                 </div>
                             </div>
                             <button type="submit" class="btn btn-success font-weight-bold">

@@ -80,9 +80,9 @@
                                         <input type="radio" name="estados[{{ $est->id }}]" value="tardanza"
                                             {{ $actual == 'tardanza' ? 'checked' : '' }}> Tardanza
                                     </label>
-                                    <label class="btn btn-outline-danger btn-sm {{ $actual == 'falta' ? 'active' : '' }}">
-                                        <input type="radio" name="estados[{{ $est->id }}]" value="falta"
-                                            {{ $actual == 'falta' ? 'checked' : '' }}> Falta
+                                    <label class="btn btn-outline-danger btn-sm {{ $actual == 'ausente' ? 'active' : '' }}">
+                                        <input type="radio" name="estados[{{ $est->id }}]" value="ausente"
+                                            {{ $actual == 'ausente' ? 'checked' : '' }}> Falta
                                     </label>
                                 </div>
                             </td>

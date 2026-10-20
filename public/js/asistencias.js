@@ -1,4 +1,29 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // Cámara de la Raspberry: si se cae, mostrar aviso y reintentar cada 5 s
+    const camara = document.getElementById('camara-raspberry');
+    const avisoCamara = document.getElementById('camara-desconectada');
+    if (camara && avisoCamara) {
+        const urlEstado = new URL(camara.dataset.src).origin + '/estado';
+
+        const esperarCamara = () => {
+            fetch(urlEstado, { cache: 'no-store' })
+                .then((r) => r.json())
+                .then((estado) => {
+                    if (!estado.camara_ok) throw new Error('cámara sin imagen');
+                    camara.src = camara.dataset.src + '?t=' + Date.now();
+                    camara.classList.remove('d-none');
+                    avisoCamara.classList.add('d-none');
+                })
+                .catch(() => setTimeout(esperarCamara, 5000));
+        };
+
+        camara.addEventListener('error', () => {
+            camara.classList.add('d-none');
+            avisoCamara.classList.remove('d-none');
+            setTimeout(esperarCamara, 5000);
+        });
+    }
+
     // Verificar si Laravel Echo está inicializado
     if (typeof Echo === 'undefined') {
         console.warn('Laravel Echo no está definido en este entorno.');

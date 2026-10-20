@@ -32,11 +32,23 @@
                 <span class="badge badge-success px-2 py-1"><i class="bi bi-broadcast mr-1"></i> EN VIVO</span>
             </div>
             <div class="card-body p-2 text-center bg-dark d-flex align-items-center justify-content-center" style="min-height: 260px;">
-                <img src="http://192.168.100.103:8080/video"
-                     class="img-fluid rounded border border-secondary" 
-                     alt="Transmisión en vivo de la Raspberry Pi"
-                     onerror="this.onerror=null; this.src='https://via.placeholder.com/640x480/1a1a1a/ffffff?text=Cámara+Raspberry+Pi+Desconectada';"
-                     style="max-height: 300px; width: 100%; object-fit: contain;">
+                @if(config('services.raspberry.stream_url'))
+                    <img id="camara-raspberry"
+                         src="{{ config('services.raspberry.stream_url') }}"
+                         data-src="{{ config('services.raspberry.stream_url') }}"
+                         class="img-fluid rounded border border-secondary"
+                         alt="Transmisión en vivo de la Raspberry Pi"
+                         style="max-height: 300px; width: 100%; object-fit: contain;">
+                    <div id="camara-desconectada" class="text-white-50 d-none">
+                        <i class="bi bi-camera-video-off" style="font-size: 2.5rem;"></i>
+                        <p class="mb-0 mt-2">Cámara Raspberry Pi desconectada. Reintentando…</p>
+                    </div>
+                @else
+                    <div class="text-white-50">
+                        <i class="bi bi-gear" style="font-size: 2.5rem;"></i>
+                        <p class="mb-0 mt-2">Configure <code>RASPBERRY_STREAM_URL</code> en el archivo .env</p>
+                    </div>
+                @endif
             </div>
             <div class="card-footer bg-white py-2 text-center">
                 <small class="text-muted">

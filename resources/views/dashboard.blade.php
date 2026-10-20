@@ -114,11 +114,13 @@
                                         {{ $asistencia->estudiante->curso }} {{ $asistencia->estudiante->paralelo ? '- '.$asistencia->estudiante->paralelo : '' }}
                                     </td>
                                     <td>
-                                        {{ \Carbon\Carbon::parse($asistencia->hora_entrada ?? $asistencia->created_at)->format('H:i:s A') }}
+                                        {{ $asistencia->hora_ingreso ? \Carbon\Carbon::parse($asistencia->hora_ingreso)->format('H:i:s') : '—' }}
                                     </td>
                                     <td>
-                                        @if($asistencia->estado === 'atraso')
+                                        @if($asistencia->estado === 'tardanza')
                                             <span class="badge badge-warning px-2 py-1">Tardanza</span>
+                                        @elseif($asistencia->estado === 'ausente')
+                                            <span class="badge badge-danger px-2 py-1">Ausente</span>
                                         @else
                                             <span class="badge badge-success px-2 py-1">A tiempo</span>
                                         @endif

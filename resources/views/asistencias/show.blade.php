@@ -32,7 +32,7 @@
                             @case('tardanza')
                                 <span class="badge bg-warning text-dark">Tardanza</span>
                                 @break
-                            @case('falta')
+                            @case('ausente')
                                 <span class="badge bg-danger text-white">Falta</span>
                                 @break
                             @case('justificada')
