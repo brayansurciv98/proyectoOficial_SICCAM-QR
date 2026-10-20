@@ -24,7 +24,9 @@ class ColaAsistencias:
         # isolation_level=None: cada INSERT/DELETE se guarda en disco al instante
         self._con = sqlite3.connect(str(ruta_db), check_same_thread=False, isolation_level=None)
         self._con.execute("PRAGMA journal_mode=WAL")
-        self._con.execute("PRAGMA synchronous=FULL")
+        # WAL + NORMAL: la base nunca se corrompe y escribir en la SD es mucho más rápido.
+        # (Ante un corte de luz justo en ese instante, solo podría perderse la última lectura.)
+        self._con.execute("PRAGMA synchronous=NORMAL")
         self._con.execute(
             """CREATE TABLE IF NOT EXISTS pendientes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,6 +46,8 @@ class ColaAsistencias:
                 descartado_en TEXT NOT NULL
             )"""
         )
+        # Contador en memoria: el video lo consulta sin esperar a la SD
+        self._pendientes = self._con.execute("SELECT COUNT(*) FROM pendientes").fetchone()[0]
 
     def agregar(self, codigo, momento=None):
         momento = momento or datetime.now()
@@ -52,6 +56,7 @@ class ColaAsistencias:
                 "INSERT INTO pendientes (codigo, fecha_hora) VALUES (?, ?)",
                 (codigo, momento.isoformat(timespec="seconds")),
             )
+            self._pendientes += 1
         self._hay_nuevos.set()
 
     def siguientes(self, limite=20):
@@ -62,7 +67,8 @@ class ColaAsistencias:
 
     def eliminar(self, id_):
         with self._lock:
-            self._con.execute("DELETE FROM pendientes WHERE id = ?", (id_,))
+            borrados = self._con.execute("DELETE FROM pendientes WHERE id = ?", (id_,)).rowcount
+            self._pendientes -= borrados
 
     def descartar(self, id_, codigo, fecha_hora, motivo):
         with self._lock:
@@ -70,7 +76,8 @@ class ColaAsistencias:
                 "INSERT INTO descartados (codigo, fecha_hora, motivo, descartado_en) VALUES (?, ?, ?, ?)",
                 (codigo, fecha_hora, motivo, datetime.now().isoformat(timespec="seconds")),
             )
-            self._con.execute("DELETE FROM pendientes WHERE id = ?", (id_,))
+            borrados = self._con.execute("DELETE FROM pendientes WHERE id = ?", (id_,)).rowcount
+            self._pendientes -= borrados
 
     def marcar_error(self, id_, error):
         with self._lock:
@@ -80,8 +87,8 @@ class ColaAsistencias:
             )
 
     def cantidad(self):
-        with self._lock:
-            return self._con.execute("SELECT COUNT(*) FROM pendientes").fetchone()[0]
+        # Sin bloqueo: no hace esperar al video mientras se escribe en la SD
+        return self._pendientes
 
     def esperar_nuevos(self, segundos):
         self._hay_nuevos.wait(segundos)

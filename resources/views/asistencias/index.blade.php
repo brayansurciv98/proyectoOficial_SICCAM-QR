@@ -5,113 +5,91 @@
 
 @section('content')
 <!-- Encabezado con botones de acción -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
+@php
+    // Exportar la asistencia del día consultado (por estudiante), con el curso filtrado
+    $filtrosExportar = [
+        'fecha_desde'  => $fecha,
+        'fecha_hasta'  => $fecha,
+        'curso'        => request('curso'),
+        'tipo_reporte' => 'estudiante',
+    ];
+    // La cámara se muestra aparte, en otro monitor (vista /pantalla de la Raspberry)
+    $urlPantalla = config('services.raspberry.stream_url')
+        ? str_replace('/video', '/pantalla', config('services.raspberry.stream_url'))
+        : null;
+@endphp
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <div class="mb-2 mb-md-0">
         <h5 class="mb-1 font-weight-bold text-dark">Registro de Asistencias</h5>
         <small class="text-muted">Fecha consultada: {{ \Carbon\Carbon::parse($fecha)->format('d/m/Y') }}</small>
     </div>
     <div>
-        <button class="btn btn-outline-success btn-sm mr-1">
+        @if($urlPantalla)
+            <a href="{{ $urlPantalla }}" target="_blank" rel="noopener"
+               class="btn btn-outline-secondary btn-sm mr-1"
+               title="Abrir la cámara para mostrarla en otro monitor">
+                <i class="bi bi-display mr-1"></i> Abrir cámara
+            </a>
+        @endif
+        <a href="{{ route('reportes.excel', $filtrosExportar) }}" class="btn btn-outline-success btn-sm mr-1">
             <i class="bi bi-file-earmark-excel mr-1"></i> Exportar Excel
-        </button>
-        <button class="btn btn-outline-danger btn-sm">
+        </a>
+        <a href="{{ route('reportes.pdf', $filtrosExportar) }}" class="btn btn-outline-danger btn-sm">
             <i class="bi bi-file-earmark-pdf mr-1"></i> Exportar PDF
-        </button>
+        </a>
     </div>
 </div>
 
-<!-- SECCIÓN: Cámara Raspberry Pi y Panel de Control -->
-<div class="row mb-4">
-    <!-- Módulo Transmisión en Vivo (Cámara Raspberry Pi) -->
-    <div class="col-lg-6 mb-3 mb-lg-0">
-        <div class="card card-outline card-success shadow-sm h-100">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
-                <h6 class="card-title font-weight-bold text-dark mb-0">
-                    <i class="bi bi-camera-video-fill text-success mr-1"></i> Cámara de Control (Raspberry Pi)
-                </h6>
-                <span class="badge badge-success px-2 py-1"><i class="bi bi-broadcast mr-1"></i> EN VIVO</span>
-            </div>
-            <div class="card-body p-2 text-center bg-dark d-flex align-items-center justify-content-center" style="min-height: 260px;">
-                @if(config('services.raspberry.stream_url'))
-                    <img id="camara-raspberry"
-                         src="{{ config('services.raspberry.stream_url') }}"
-                         data-src="{{ config('services.raspberry.stream_url') }}"
-                         class="img-fluid rounded border border-secondary"
-                         alt="Transmisión en vivo de la Raspberry Pi"
-                         style="max-height: 300px; width: 100%; object-fit: contain;">
-                    <div id="camara-desconectada" class="text-white-50 d-none">
-                        <i class="bi bi-camera-video-off" style="font-size: 2.5rem;"></i>
-                        <p class="mb-0 mt-2">Cámara Raspberry Pi desconectada. Reintentando…</p>
-                    </div>
-                @else
-                    <div class="text-white-50">
-                        <i class="bi bi-gear" style="font-size: 2.5rem;"></i>
-                        <p class="mb-0 mt-2">Configure <code>RASPBERRY_STREAM_URL</code> en el archivo .env</p>
-                    </div>
-                @endif
-            </div>
-            <div class="card-footer bg-white py-2 text-center">
-                <small class="text-muted">
-                    <i class="bi bi-qr-code-scan mr-1 text-primary"></i> Acerque la credencial con el código QR frente al lente para marcar asistencia.
-                </small>
-            </div>
-        </div>
+<!-- Filtros de consulta (ancho completo) -->
+<div class="card card-outline card-success shadow-sm mb-4">
+    <div class="card-header bg-white d-flex align-items-center py-2">
+        <h6 class="card-title font-weight-bold text-dark mb-0">
+            <i class="bi bi-funnel-fill text-success mr-1"></i> Filtros de Consulta
+        </h6>
+        <a href="{{ route('asistencias.index') }}" class="btn btn-link btn-sm text-muted p-0 ml-auto">
+            <i class="bi bi-arrow-counterclockwise"></i> Limpiar filtros
+        </a>
     </div>
+    <div class="card-body pb-2">
+        <form method="GET" action="{{ route('asistencias.index') }}" id="formFiltros">
+            <div class="row">
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small text-muted font-weight-bold">Fecha</label>
+                    <input type="date" name="fecha" class="form-control" value="{{ request('fecha', $fecha) }}" onchange="document.getElementById('formFiltros').submit()">
+                </div>
 
-    <!-- Módulo de Filtros y Búsqueda -->
-    <div class="col-lg-6">
-        <div class="card card-outline card-success shadow-sm h-100">
-            <div class="card-header bg-white py-2">
-                <h6 class="card-title font-weight-bold text-dark mb-0">
-                    <i class="bi bi-funnel-fill text-success mr-1"></i> Filtros de Consulta
-                </h6>
-            </div>
-            <div class="card-body d-flex flex-column justify-content-center">
-                <form method="GET" action="{{ route('asistencias.index') }}" id="formFiltros">
-                    <div class="row g-3">
-                        <div class="col-md-6 mb-2">
-                            <label class="form-label small text-muted font-weight-bold">Fecha</label>
-                            <input type="date" name="fecha" class="form-control" value="{{ request('fecha', $fecha) }}" onchange="document.getElementById('formFiltros').submit()">
-                        </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small text-muted font-weight-bold">Curso</label>
+                    <select name="curso" class="form-control custom-select" onchange="document.getElementById('formFiltros').submit()">
+                        <option value="">Todos los cursos</option>
+                        @foreach(['1' => '1º de Secundaria', '2' => '2º de Secundaria', '3' => '3º de Secundaria', '4' => '4º de Secundaria', '5' => '5º de Secundaria', '6' => '6º de Secundaria'] as $num => $label)
+                            <option value="{{ $num }}" {{ request('curso') == $num ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
-                        <div class="col-md-6 mb-2">
-                            <label class="form-label small text-muted font-weight-bold">Curso</label>
-                            <select name="curso" class="form-control custom-select" onchange="document.getElementById('formFiltros').submit()">
-                                <option value="">Todos los cursos</option>
-                                @foreach(['1' => '1º de Secundaria', '2' => '2º de Secundaria', '3' => '3º de Secundaria', '4' => '4º de Secundaria', '5' => '5º de Secundaria', '6' => '6º de Secundaria'] as $num => $label)
-                                    <option value="{{ $num }}" {{ request('curso') == $num ? 'selected' : '' }}>{{ $label }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small text-muted font-weight-bold">Estado</label>
+                    <select name="estado" class="form-control custom-select" onchange="document.getElementById('formFiltros').submit()">
+                        <option value="">Todos los estados</option>
+                        <option value="presente" {{ request('estado') == 'presente' ? 'selected' : '' }}>Presente</option>
+                        <option value="tardanza" {{ request('estado') == 'tardanza' ? 'selected' : '' }}>Tardanza</option>
+                        <option value="ausente" {{ request('estado') == 'ausente' ? 'selected' : '' }}>Ausente</option>
+                    </select>
+                </div>
 
-                        <div class="col-md-6 mb-2">
-                            <label class="form-label small text-muted font-weight-bold">Estado</label>
-                            <select name="estado" class="form-control custom-select" onchange="document.getElementById('formFiltros').submit()">
-                                <option value="">Todos los estados</option>
-                                <option value="presente" {{ request('estado') == 'presente' ? 'selected' : '' }}>Presente</option>
-                                <option value="tardanza" {{ request('estado') == 'tardanza' ? 'selected' : '' }}>Tardanza</option>
-                                <option value="ausente" {{ request('estado') == 'ausente' ? 'selected' : '' }}>Ausente</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6 mb-2">
-                            <label class="form-label small text-muted font-weight-bold">Buscar estudiante</label>
-                            <div class="input-group">
-                                <input type="text" name="buscar" class="form-control" placeholder="Nombre o código..." value="{{ request('buscar') }}">
-                                <div class="input-group-append">
-                                    <button class="btn btn-outline-success" type="submit"><i class="bi bi-search"></i></button>
-                                </div>
-                            </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small text-muted font-weight-bold">Buscar estudiante</label>
+                    <div class="input-group">
+                        <input type="text" name="buscar" class="form-control" placeholder="Nombre o código..." value="{{ request('buscar') }}">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-success" type="submit"><i class="bi bi-search"></i></button>
                         </div>
                     </div>
-                </form>
+                </div>
             </div>
-            <div class="card-footer bg-white text-right py-2">
-                <a href="{{ route('asistencias.index') }}" class="btn btn-link btn-sm text-muted p-0">
-                    <i class="bi bi-arrow-counterclockwise"></i> Limpiar filtros
-                </a>
-            </div>
-        </div>
+        </form>
     </div>
 </div>
 
