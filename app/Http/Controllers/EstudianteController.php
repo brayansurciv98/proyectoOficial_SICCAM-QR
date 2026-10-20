@@ -166,7 +166,7 @@ class EstudianteController extends Controller
 
         $totalPresentes = $estudiante->asistencias()->where('estado', 'presente')->count();
         $totalTardanzas = $estudiante->asistencias()->where('estado', 'tardanza')->count();
-        $totalAusencias = $estudiante->asistencias()->where('estado', 'ausencia')->count();
+        $totalAusencias = $estudiante->asistencias()->where('estado', 'ausente')->count();
 
         return view('estudiantes.show', compact('estudiante', 'totalPresentes', 'totalTardanzas', 'totalAusencias'));
     }
@@ -332,17 +332,76 @@ class EstudianteController extends Controller
     /**
  * Capitaliza nombres: "juan carlos" → "Juan Carlos"
  */
-private function capitalizarNombre(?string $texto): ?string
+
+    public function credencialesTutor(Estudiante $estudiante)
 {
-    if (!$texto) {
-        return $texto;
+    $estudiante->load('tutores');
+    $tutor = $estudiante->tutores->first();
+
+    if (!$tutor) {
+        return redirect()
+            ->route('estudiantes.show', $estudiante)
+            ->with('success', 'Este estudiante no tiene tutor asignado.');
     }
 
-    $texto = trim(mb_strtolower($texto, 'UTF-8'));
+    if (empty($tutor->clave_inicial)) {
+        return redirect()
+            ->route('estudiantes.show', $estudiante)
+            ->with('success', 'El tutor no tiene clave inicial guardada.');
+    }
 
-    return collect(preg_split('/\s+/', $texto))
-        ->filter()
-        ->map(fn ($parte) => mb_convert_case($parte, MB_CASE_TITLE, 'UTF-8'))
-        ->implode(' ');
+    return redirect()
+        ->route('estudiantes.show', $estudiante)
+        ->with('ver_credenciales_tutor', [
+            'estudiante_id' => $estudiante->id,
+            'tutor_nombre'  => $tutor->nombres . ' ' . $tutor->apellidos,
+            'usuario'       => $tutor->ci ?? $tutor->email,
+            'password'      => $tutor->clave_inicial,
+            'estudiante'    => $estudiante->nombres . ' ' . $estudiante->apellidos,
+            'codigo_est'    => $estudiante->codigo_estudiante,
+        ]);
 }
+
+    public function credencialesTutorPdf(Estudiante $estudiante)
+    {
+        $estudiante->load('tutores');
+        $tutor = $estudiante->tutores->first();
+
+        if (!$tutor || empty($tutor->clave_inicial)) {
+            return redirect()
+                ->route('estudiantes.show', $estudiante)
+                ->with('success', 'No hay credenciales de tutor para descargar.');
+        }
+
+        $data = [
+            'tutor_nombre' => $tutor->nombres . ' ' . $tutor->apellidos,
+            'usuario'      => $tutor->ci ?? $tutor->email,
+            'password'     => $tutor->clave_inicial,
+            'estudiante'   => $estudiante->nombres . ' ' . $estudiante->apellidos,
+            'codigo_est'   => $estudiante->codigo_estudiante,
+            'fecha'        => now()->format('d/m/Y H:i'),
+        ];
+
+        $nombreArchivo = 'Credenciales_Tutor_' .
+            str_replace(' ', '_', $tutor->nombres . '_' . $tutor->apellidos) .
+            '.pdf';
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('estudiantes.credenciales_tutor_pdf', $data);
+
+        return $pdf->download($nombreArchivo);
+    }
+
+    private function capitalizarNombre(?string $texto): ?string
+    {
+        if (!$texto) {
+            return $texto;
+        }
+    
+        $texto = trim(mb_strtolower($texto, 'UTF-8'));
+    
+        return collect(preg_split('/\s+/', $texto))
+            ->filter()
+            ->map(fn ($parte) => mb_convert_case($parte, MB_CASE_TITLE, 'UTF-8'))
+            ->implode(' ');
+    }
 }

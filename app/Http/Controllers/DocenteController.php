@@ -86,7 +86,23 @@ class DocenteController extends Controller
     {
         $materias = Materia::orderBy('nombre')->get();
         $docente->load('cursos');
-        return view('docentes.edit', compact('docente', 'materias'));
+    
+        $cursosOld = old('cursos');
+    
+        if (!$cursosOld) {
+            $cursosOld = $docente->cursos->map(function ($c) {
+                return [
+                    'curso' => (string) $c->curso,
+                    'paralelo' => $c->paralelo,
+                ];
+            })->values()->all();
+        }
+    
+        if (empty($cursosOld)) {
+            $cursosOld = [];
+        }
+    
+        return view('docentes.edit', compact('docente', 'materias', 'cursosOld'));
     }
 
     public function update(Request $request, Docente $docente)
@@ -130,10 +146,61 @@ class DocenteController extends Controller
 
     public function destroy(Docente $docente)
     {
+        // horarios.docente_id tiene restrictOnDelete: borrar daría error 500
+        if ($docente->horarios()->exists()) {
+            return redirect()->route('docentes.index')
+                ->withErrors(['docente' => 'No se puede eliminar: el docente tiene horarios asignados. Elimine o reasigne sus horarios primero.']);
+        }
+
         $docente->delete();
         return redirect()->route('docentes.index')
             ->with('success', 'Docente eliminado correctamente.');
     }
+
+    public function credenciales(Docente $docente)
+    {
+        $docente->load('materia');
+
+        if (empty($docente->clave_inicial)) {
+            return redirect()->route('docentes.index')
+                ->with('success', 'Este docente no tiene clave inicial guardada.');
+        }
+
+        return redirect()->route('docentes.index')->with('ver_credenciales_docente', [
+            'id'       => $docente->id,
+            'nombre'   => $docente->nombres . ' ' . $docente->apellidos,
+            'materia'  => $docente->materia->nombre ?? '—',
+            'usuario'  => $docente->ci ?? $docente->email,
+            'password' => $docente->clave_inicial,
+        ]);
+    }
+
+    public function credencialesPdf(Docente $docente)
+    {
+        $docente->load('materia');
+
+        if (empty($docente->clave_inicial)) {
+            return redirect()->route('docentes.index')
+                ->with('success', 'Este docente no tiene clave inicial guardada.');
+        }
+
+        $data = [
+            'nombre'   => $docente->nombres . ' ' . $docente->apellidos,
+            'materia'  => $docente->materia->nombre ?? '—',
+            'usuario'  => $docente->ci ?? $docente->email,
+            'password' => $docente->clave_inicial,
+            'fecha'    => now()->format('d/m/Y H:i'),
+        ];
+
+        $nombreArchivo = 'Credenciales_Docente_' .
+            str_replace(' ', '_', $docente->nombres . '_' . $docente->apellidos) .
+            '.pdf';
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('docentes.credenciales_pdf', $data);
+
+        return $pdf->download($nombreArchivo);
+    }
+
 
     private function capitalizar(?string $texto): ?string
     {

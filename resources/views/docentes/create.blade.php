@@ -58,46 +58,58 @@
         </div>
 
         <div class="col-md-6">
-            <div class="card card-outline card-success">
-                <div class="card-header d-flex justify-content-between">
-                    <strong>Cursos asignados *</strong>
-                    <button type="button" class="btn btn-sm btn-outline-success" id="btnAddCurso">+ Agregar</button>
+    <div class="card card-outline card-success">
+        <div class="card-header">
+            <strong>Cursos asignados *</strong>
+        </div>
+
+        <div class="card-body">
+            {{-- Selector para agregar --}}
+            <div class="row mb-3">
+                <div class="col-5">
+                    <select id="cursoSelect" class="form-control">
+                        <option value="">Curso</option>
+                        @for($i = 1; $i <= 6; $i++)
+                            <option value="{{ $i }}">{{ $i }}°</option>
+                        @endfor
+                    </select>
                 </div>
-                <div class="card-body" id="cursosContainer" data-curso-index="1"></div>
-                    <div class="row curso-item mb-2">
-                        <div class="col-5">
-                            <select name="cursos[0][curso]" class="form-control" required>
-                                <option value="">Curso</option>
-                                @for($i = 1; $i <= 6; $i++)
-                                    <option value="{{ $i }}">{{ $i }}°</option>
-                                @endfor
-                            </select>
-                        </div>
-                        <div class="col-5">
-                            <select name="cursos[0][paralelo]" class="form-control" required>
-                                <option value="">Paralelo</option>
-                                <option value="A">A</option>
-                                <option value="B">B</option>
-                                <option value="C">C</option>
-                            </select>
-                        </div>
-                        <div class="col-2">
-                            <button type="button" class="btn btn-outline-danger btn-block btn-remove" disabled>×</button>
-                        </div>
-                    </div>
+                <div class="col-5">
+                    <select id="paraleloSelect" class="form-control">
+                        <option value="">Paralelo</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                    </select>
+                </div>
+                <div class="col-2">
+                    <button type="button" class="btn btn-success btn-block" id="btnAddCurso">+</button>
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-success btn-lg btn-block mt-3">
-                <i class="fas fa-save"></i> Registrar Docente
-            </button>
-            <a href="{{ route('docentes.index') }}" class="btn btn-outline-secondary btn-block">Cancelar</a>
+            {{-- Lista acumulada --}}
+            <div id="cursosAsignadosList">
+                <p class="text-muted mb-0" id="cursosEmptyMsg">Aún no hay cursos asignados.</p>
+            </div>
+
+            {{-- Inputs hidden que sí se envían al backend --}}
+            <div id="cursosHiddenInputs"></div>
         </div>
+    </div>
+
+    <button type="submit" class="btn btn-success btn-lg btn-block mt-3">
+        <i class="fas fa-save"></i> Registrar Docente
+    </button>
+    <a href="{{ route('docentes.index') }}" class="btn btn-outline-secondary btn-block">Cancelar</a>
+</div>
     </div>
 </form>
 @endsection
 
 
 @push('scripts')
+    <script>
+        window.cursosInicialesDocente = [];
+    </script>
     <script src="{{ asset('js/docentes-form.js') }}"></script>
 @endpush

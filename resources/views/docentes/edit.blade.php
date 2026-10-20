@@ -17,6 +17,21 @@
     </div>
 @endif
 
+@php
+    $cursosOld = old('cursos');
+
+    if (!$cursosOld) {
+        $cursosOld = $docente->cursos->map(fn ($c) => [
+            'curso' => (string) $c->curso,
+            'paralelo' => $c->paralelo,
+        ])->values()->all();
+    }
+
+    if (empty($cursosOld)) {
+        $cursosOld = [];
+    }
+@endphp
+
 <form action="{{ route('docentes.update', $docente) }}" method="POST" id="formDocente">
     @csrf
     @method('PUT')
@@ -128,56 +143,39 @@
         {{-- CURSOS ASIGNADOS --}}
         <div class="col-md-6">
             <div class="card card-outline card-success shadow-sm">
-                <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-header">
                     <strong><i class="bi bi-journal-bookmark mr-1"></i> Cursos asignados *</strong>
-                    <button type="button" class="btn btn-sm btn-outline-success" id="btnAddCurso">
-                        + Agregar
-                    </button>
                 </div>
-                <div class="card-body" id="cursosContainer"
-                    data-curso-index="{{ count($cursosOld) }}"></div>
-                    @php
-                        $cursosOld = old('cursos');
-                        if (!$cursosOld) {
-                            $cursosOld = $docente->cursos->map(fn ($c) => [
-                                'curso' => $c->curso,
-                                'paralelo' => $c->paralelo,
-                            ])->values()->all();
-                        }
-                        if (empty($cursosOld)) {
-                            $cursosOld = [['curso' => '', 'paralelo' => '']];
-                        }
-                    @endphp
 
-                    @foreach($cursosOld as $i => $item)
-                        <div class="row curso-item mb-2">
-                            <div class="col-5">
-                                <select name="cursos[{{ $i }}][curso]" class="form-control" required>
-                                    <option value="">Curso</option>
-                                    @for($n = 1; $n <= 6; $n++)
-                                        <option value="{{ $n }}" {{ (string)($item['curso'] ?? '') === (string)$n ? 'selected' : '' }}>
-                                            {{ $n }}°
-                                        </option>
-                                    @endfor
-                                </select>
-                            </div>
-                            <div class="col-5">
-                                <select name="cursos[{{ $i }}][paralelo]" class="form-control" required>
-                                    <option value="">Paralelo</option>
-                                    @foreach(['A','B','C'] as $p)
-                                        <option value="{{ $p }}" {{ ($item['paralelo'] ?? '') == $p ? 'selected' : '' }}>
-                                            {{ $p }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-2">
-                                <button type="button"
-                                        class="btn btn-outline-danger btn-block btn-remove"
-                                        {{ $i === 0 ? 'disabled' : '' }}>×</button>
-                            </div>
+                <div class="card-body">
+                    {{-- Selector para agregar --}}
+                    <div class="row mb-3">
+                        <div class="col-5">
+                            <select id="cursoSelect" class="form-control">
+                                <option value="">Curso</option>
+                                @for($i = 1; $i <= 6; $i++)
+                                    <option value="{{ $i }}">{{ $i }}°</option>
+                                @endfor
+                            </select>
                         </div>
-                    @endforeach
+                        <div class="col-5">
+                            <select id="paraleloSelect" class="form-control">
+                                <option value="">Paralelo</option>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                            </select>
+                        </div>
+                        <div class="col-2">
+                            <button type="button" class="btn btn-success btn-block" id="btnAddCurso">+</button>
+                        </div>
+                    </div>
+
+                    {{-- Lista acumulada --}}
+                    <div id="cursosAsignadosList"></div>
+
+                    {{-- Inputs hidden para Laravel --}}
+                    <div id="cursosHiddenInputs"></div>
                 </div>
             </div>
 
@@ -193,5 +191,9 @@
 @endsection
 
 @push('scripts')
+    <div id="cursos-iniciales-data"
+         data-cursos='@json($cursosOld)'
+         style="display:none"></div>
+
     <script src="{{ asset('js/docentes-form.js') }}"></script>
 @endpush
