@@ -6,14 +6,14 @@
     <title>@yield('title', 'SICCAM QR - Control de Asistencia')</title>
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    {{-- Librerías locales (public/vendor): el panel funciona sin internet --}}
+    <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/adminlte/adminlte.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/bootstrap-icons/bootstrap-icons.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/toastify/toastify.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/app-custom.css') }}">
 
-    <!-- CORRECCIÓN DE MODALES (CSS) -->
     <style>
         .modal-backdrop {
             z-index: 1040 !important;
@@ -30,9 +30,24 @@
 @php
     $esAdmin = Auth::guard('web')->check();
     $esDocente = Auth::guard('docente')->check();
+    $usuario = $esAdmin ? Auth::guard('web')->user() : Auth::guard('docente')->user();
+
     $usuarioNombre = $esAdmin
-        ? (Auth::guard('web')->user()->name ?? 'Administrador')
-        : (Auth::guard('docente')->user()->nombres ?? 'Docente');
+        ? ($usuario?->name ?? 'Administrador')
+        : ($usuario?->nombres ?? 'Docente');
+    $usuarioCompleto = $esAdmin
+        ? ($usuario?->name ?? 'Administrador')
+        : trim(($usuario?->nombres ?? '') . ' ' . ($usuario?->apellidos ?? ''));
+    $usuarioRol = $esAdmin ? 'Administrador' : 'Docente';
+    $usuarioDetalle = $esAdmin
+        ? ($usuario?->email ?? '')
+        : 'Materia: ' . ($usuario?->materia?->nombre ?? '—');
+    // "Julio Gutierrez" -> "JG"
+    $usuarioIniciales = mb_strtoupper(
+        collect(preg_split('/\s+/', $usuarioCompleto))->filter()->take(2)
+            ->map(fn ($parte) => mb_substr($parte, 0, 1))->implode(''),
+        'UTF-8'
+    );
     $homeRoute = $esDocente ? route('docente.dashboard') : route('dashboard');
 @endphp
 
@@ -54,27 +69,32 @@
         </ul>
 
         <ul class="navbar-nav ml-auto">
-            <li class="nav-item dropdown user-menu">
-                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-                    <span class="d-none d-md-inline font-weight-bold text-dark me-2">{{ $usuarioNombre }}</span>
-                    <i class="bi bi-person-circle text-success fs-5"></i>
+                        <li class="nav-item dropdown menu-usuario">
+                <a href="#" class="nav-link d-flex align-items-center" data-toggle="dropdown" aria-expanded="false">
+                    <span class="avatar-usuario mr-2">{{ $usuarioIniciales }}</span>
+                    <span class="d-none d-md-inline text-left">
+                        <span class="d-block font-weight-bold text-dark" style="line-height: 1.1;">{{ $usuarioNombre }}</span>
+                        <small class="text-muted">{{ $usuarioRol }}</small>
+                    </span>
+                    <i class="bi bi-chevron-down text-muted ml-2 small"></i>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                    <li class="user-header bg-success">
-                        <p>
-                            {{ $esAdmin ? 'Usuario Administrador' : 'Usuario Docente' }}
-                            <small>SICCAM - QR</small>
-                        </p>
-                    </li>
-                    <li class="user-footer">
-                        <form action="{{ route('logout') }}" method="POST" class="float-right">
-                            @csrf
-                            <button type="submit" class="btn btn-default btn-flat text-danger">
-                                Cerrar Sesión
-                            </button>
-                        </form>
-                    </li>
-                </ul>
+
+                <div class="dropdown-menu dropdown-menu-right p-0 menu-usuario-panel">
+                    <div class="menu-usuario-cabecera text-center">
+                        <span class="avatar-usuario avatar-grande mb-2">{{ $usuarioIniciales }}</span>
+                        <div class="font-weight-bold">{{ $usuarioCompleto }}</div>
+                        <span class="badge badge-light text-success mt-1">{{ $usuarioRol }}</span>
+                        @if($usuarioDetalle)
+                            <div class="small mt-2" style="opacity: .85;">{{ $usuarioDetalle }}</div>
+                        @endif
+                    </div>
+
+                   
+
+                    <button type="button" class="dropdown-item py-2 text-danger" data-toggle="modal" data-target="#modalCerrarSesion">
+                        <i class="bi bi-box-arrow-right mr-2"></i> Cerrar sesión
+                    </button>
+                </div>
             </li>
         </ul>
     </nav>
@@ -115,6 +135,13 @@
                             <a href="{{ route('docentes.index') }}" class="nav-link {{ request()->routeIs('docentes.*') ? 'active' : '' }}">
                                 <i class="nav-icon bi bi-person-badge"></i>
                                 <p>Docentes</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="{{ route('horarios.index') }}" class="nav-link {{ request()->routeIs('horarios.*') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-calendar-week"></i>
+                                <p>Horarios</p>
                             </a>
                         </li>
 
@@ -169,18 +196,30 @@
                                 <p>Mi Panel</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('docente.clases.index') }}" class="nav-link {{ request()->routeIs('docente.clases.*') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-calendar-check"></i>
+                                <p>Mis clases de hoy</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="{{ route('docente.asistencias.manual') }}" class="nav-link {{ request()->routeIs('docente.asistencias.manual*') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-clipboard-check"></i>
+                                <p>Asistencia Manual</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="{{ route('docente.examenes.index') }}"
+                               class="nav-link {{ request()->routeIs('docente.examenes.*') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-journal-check"></i>
+                                <p>Mis Exámenes</p>
+                            </a>
+                        </li>
                     @endif
 
-                    <li class="nav-header">CUENTA</li>
-                    <li class="nav-item">
-                        <form action="{{ route('logout') }}" method="POST" class="d-inline w-100">
-                            @csrf
-                            <button type="submit" class="nav-link text-warning border-0 bg-transparent w-100 text-left" style="cursor:pointer;">
-                                <i class="nav-icon bi bi-box-arrow-right"></i>
-                                <p>Cerrar Sesión</p>
-                            </button>
-                        </form>
-                    </li>
+                    
 
                 </ul>
             </nav>
@@ -213,15 +252,36 @@
     </footer>
 </div>
 
-<!-- SCRIPTS DE NAVEGADOR -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap4.min.js"></script>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+{{-- Confirmación al cerrar sesión (la usan el menú de arriba y el lateral) --}}
+<form id="form-logout" action="{{ route('logout') }}" method="POST" class="d-none">
+    @csrf
+</form>
 
-<!-- CORRECCIÓN JS GLOBAL PARA REUBICAR MODALES -->
+<div class="modal fade" id="modalCerrarSesion" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content border-0" style="border-radius: 12px;">
+            <div class="modal-body text-center p-4">
+                <div class="mb-3">
+                    <i class="bi bi-box-arrow-right text-danger" style="font-size: 2.6rem;"></i>
+                </div>
+                <h5 class="font-weight-bold mb-2">Cerrar sesión</h5>
+                <p class="text-muted mb-4">¿Desea cerrar sesión, {{ $usuarioNombre }}?</p>
+                <div class="d-flex justify-content-center">
+                    <button type="button" class="btn btn-outline-secondary mr-2 px-4" data-dismiss="modal">No</button>
+                    <button type="submit" form="form-logout" class="btn btn-danger px-4">Sí, salir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
+<script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('vendor/adminlte/adminlte.min.js') }}"></script>
+<script src="{{ asset('vendor/datatables/jquery.dataTables.min.js') }}"></script>
+<script src="{{ asset('vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
+<script src="{{ asset('vendor/toastify/toastify.min.js') }}"></script>
+
 <script>
     $(document).ready(function() {
         $(document).on('show.bs.modal', '.modal', function () {

@@ -1,0 +1,35 @@
+; Copie este archivo como config.ini y ajuste los valores.
+; config.ini NO se sube a git (tiene el token).
+
+[laravel]
+; IP de la PC donde corre Laravel (en la PC: ipconfig). Laravel debe escuchar en la red:
+;   php artisan serve --host=0.0.0.0 --port=8000
+url = http://192.168.100.43:8000/api/asistencias/marcar
+; Debe ser igual a RASPBERRY_TOKEN del .env de Laravel
+token = PEGAR_AQUI_RASPBERRY_TOKEN
+timeout_seg = 4
+
+[camara]
+indice = 0
+ancho = 1280
+alto = 720
+fps = 30
+; MJPG permite 1280x720 a ~30 fps por USB. Si la cámara no lo soporta, deje vacío: formato =
+formato = MJPG
+
+[lectura]
+; Segundos de espera antes de reintentar un código que Laravel rechazó
+cooldown_seg = 10
+; Formato del código del estudiante (parte antes de | en el QR)
+patron_codigo = ^EST-\d{4}-\d{4}$
+
+[stream]
+; false = solo lee QR, sin video (menos CPU)
+activo = true
+puerto = 8080
+fps_max = 12
+calidad_jpeg = 70
+
+[offline]
+archivo_cola = cola_asistencias.db
+reintento_seg = 15

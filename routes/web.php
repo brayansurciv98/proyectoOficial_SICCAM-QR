@@ -13,6 +13,8 @@ use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\DocenteController;
 use App\Models\Docente;
 use App\Http\Controllers\ExamenController;
+use App\Http\Controllers\HorarioController;
+use App\Http\Controllers\AsistenciaClaseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -100,13 +102,26 @@ Route::middleware(['tipo:admin'])->group(function () {
     Route::patch('/estudiantes/{estudiante}/toggle-estado', [EstudianteController::class, 'toggleEstado'])
         ->name('estudiantes.toggleEstado');
     Route::resource('estudiantes', EstudianteController::class);
+    Route::get('/estudiantes/{estudiante}/tutor/credenciales', [EstudianteController::class, 'credencialesTutor'])
+    ->name('estudiantes.tutor.credenciales');
+
+    Route::get('/estudiantes/{estudiante}/tutor/credenciales/pdf', [EstudianteController::class, 'credencialesTutorPdf'])
+        ->name('estudiantes.tutor.credenciales.pdf');
 
     // Docentes
     Route::resource('docentes', DocenteController::class);
 
+    Route::get('/docentes/{docente}/credenciales', [DocenteController::class, 'credenciales'])
+    ->name('docentes.credenciales');
+
+    Route::get('/docentes/{docente}/credenciales/pdf', [DocenteController::class, 'credencialesPdf'])
+    ->name('docentes.credenciales.pdf');
+
     // Exámenes
+    // Sin parameters() Laravel nombra el parámetro {examene} y el destroy(Examen $examen) no lo enlaza
     Route::resource('examenes', ExamenController::class)
-        ->only(['index', 'create', 'store', 'destroy']);
+        ->only(['index', 'create', 'store', 'destroy'])
+        ->parameters(['examenes' => 'examen']);
 
     // Asistencias
     Route::get('/asistencias/manual', [AsistenciaController::class, 'manual'])
@@ -118,6 +133,8 @@ Route::middleware(['tipo:admin'])->group(function () {
 
     // Reportes
     Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
+    Route::get('/reportes/pdf', [ReporteController::class, 'pdf'])->name('reportes.pdf');
+    Route::get('/reportes/excel', [ReporteController::class, 'excel'])->name('reportes.excel');
 
     // Comunicados
     Route::resource('comunicados', ComunicadoController::class)->only(['index', 'store', 'destroy']);
@@ -125,6 +142,9 @@ Route::middleware(['tipo:admin'])->group(function () {
     // Configuración
     Route::get('/configuracion', [ConfiguracionController::class, 'index'])->name('configuracion.index');
     Route::post('/configuracion', [ConfiguracionController::class, 'store'])->name('configuracion.store');
+
+    Route::resource('horarios', HorarioController::class)
+    ->only(['index', 'create', 'store', 'destroy']);
 });
 
 /*
@@ -144,8 +164,55 @@ Route::middleware(['tipo:docente'])->prefix('docente')->name('docente.')->group(
 
         $docente->load(['materia', 'cursos']);
 
-        return view('docente.dashboard', compact('docente'));
+        // Estudiantes de sus cursos que hoy están como ausentes
+        $ausentesHoy = collect();
+        if ($docente->cursos->isNotEmpty()) {
+            $ausentesHoy = \App\Models\Asistencia::with('estudiante')
+                ->whereDate('fecha', today())
+                ->where('estado', \App\Models\Asistencia::AUSENTE)
+                ->whereHas('estudiante', function ($q) use ($docente) {
+                    $q->where(function ($q) use ($docente) {
+                        foreach ($docente->cursos as $c) {
+                            $q->orWhere(fn ($q) => $q->where('curso', $c->curso)->where('paralelo', $c->paralelo));
+                        }
+                    });
+                })
+                ->get()
+                ->sortBy(fn ($a) => $a->estudiante->curso . $a->estudiante->paralelo . $a->estudiante->apellidos);
+        }
+
+        // Clase en curso / próxima / sin clase
+        $jornada = \App\Models\Horario::jornadaDe($docente);
+
+        return view('docentes.dashboard', compact('docente', 'ausentesHoy', 'jornada'));
     })->name('dashboard');
 
-    // Aquí luego: asistencia manual y exámenes del docente
+        // Asistencia por clase (bloque del horario), solo hoy
+    Route::get('/clases', [AsistenciaClaseController::class, 'index'])
+        ->name('clases.index');
+    Route::get('/clases/{horario}/asistencia', [AsistenciaClaseController::class, 'create'])
+        ->name('clases.asistencia');
+    Route::post('/clases/{horario}/asistencia', [AsistenciaClaseController::class, 'store'])
+        ->name('clases.asistencia.store');
+
+
+    // Asistencia manual del docente
+    Route::get('/asistencias/manual', [AsistenciaController::class, 'manualDocente'])
+        ->name('asistencias.manual');
+
+    Route::post('/asistencias/manual', [AsistenciaController::class, 'storeManualDocente'])
+        ->name('asistencias.manual.store');
+
+    // Exámenes del docente
+    Route::get('/examenes', [ExamenController::class, 'indexDocente'])
+        ->name('examenes.index');
+    
+    Route::get('/examenes/create', [ExamenController::class, 'createDocente'])
+        ->name('examenes.create');
+    
+    Route::post('/examenes', [ExamenController::class, 'storeDocente'])
+        ->name('examenes.store');
+    
+    Route::delete('/examenes/{examen}', [ExamenController::class, 'destroyDocente'])
+        ->name('examenes.destroy');
 });

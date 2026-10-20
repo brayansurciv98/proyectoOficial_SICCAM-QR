@@ -1,0 +1,2 @@
+# La Pi necesita finales de línea LF (con CRLF el .sh no corre en Linux)
+* text=auto eol=lf

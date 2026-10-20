@@ -1,0 +1,4 @@
+config.ini
+cola_asistencias.db*
+camara_env/
+__pycache__/

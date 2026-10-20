@@ -105,3 +105,51 @@
 .row-realtime {
     animation: highlightAnimation 3s ease-out;
 }
+
+/* ===== Menú de usuario (arriba a la derecha) ===== */
+.avatar-usuario {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--verde-claro);
+    color: #fff;
+    font-weight: 700;
+    font-size: .9rem;
+}
+
+.avatar-usuario.avatar-grande {
+    width: 64px;
+    height: 64px;
+    font-size: 1.4rem;
+    background: #fff;
+    color: var(--verde-principal);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .2);
+}
+
+.menu-usuario-panel {
+    width: 280px;
+    border: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .15);
+}
+
+.menu-usuario-cabecera {
+    background: linear-gradient(135deg, var(--verde-oscuro), var(--verde-claro));
+    color: #fff;
+    padding: 20px 16px;
+}
+
+.menu-usuario-panel .dropdown-item:active {
+    background: #d4edda;
+    color: inherit;
+}
+
+/* ===== Al imprimir (Ctrl+P): solo el contenido, sin menús ===== */
+@media print {
+    .main-sidebar, .main-header, .main-footer, .btn, form { display: none !important; }
+    .content-wrapper { margin-left: 0 !important; }
+}
