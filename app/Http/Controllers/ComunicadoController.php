@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comunicado;
+use App\Services\AvisoTutores;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -26,7 +27,7 @@ class ComunicadoController extends Controller
     {
         $request->validate([
             'titulo' => 'required|string|max:255',
-            'destinatario' => 'required|string',
+            'destinatario' => 'required|in:todos,1,2,3,4,5,6',
             'mensaje' => 'required|string',
             'accion' => 'required|in:enviar,borrador',
         ]);
@@ -42,7 +43,7 @@ class ComunicadoController extends Controller
 
         $estado = $request->accion === 'enviar' ? 'enviado' : 'pendiente';
 
-        Comunicado::create([
+        $comunicado = Comunicado::create([
             'titulo' => $request->titulo,
             'mensaje' => $request->mensaje,
             'destinatario' => $destinatarioTipo,
@@ -52,9 +53,13 @@ class ComunicadoController extends Controller
             'user_id' => Auth::id(),
         ]);
 
-        $mensajeExito = $estado === 'enviado' 
-            ? 'Comunicado enviado correctamente.' 
-            : 'Comunicado guardado como borrador.';
+        if ($estado === 'enviado') {
+            // Llega a la app de los tutores como aviso y notificación push
+            $cantidad = app(AvisoTutores::class)->comunicado($comunicado);
+            $mensajeExito = "Comunicado enviado a {$cantidad} tutor(es).";
+        } else {
+            $mensajeExito = 'Comunicado guardado como borrador.';
+        }
 
         return redirect()->route('comunicados.index')->with('success', $mensajeExito);
     }

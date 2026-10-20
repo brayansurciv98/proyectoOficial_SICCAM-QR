@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         'tipo' => \App\Http\Middleware\CheckTipoUsuario::class,
     ]);
     })
-    ->withExceptions(function (Exceptions $exceptions) {
-        //
+        ->withExceptions(function (Exceptions $exceptions) {
+        // La API siempre responde JSON (sin redirigir al login web)
+        $exceptions->shouldRenderJsonWhen(fn ($request) => $request->is('api/*'));
     })->create();
