@@ -15,7 +15,9 @@
     </div>
 @endif
 
-<form action="{{ route('examenes.store') }}" method="POST">
+<form action="{{ route('examenes.store') }}" method="POST"
+      id="form-examen"
+      data-horarios='@json($horariosJs)'>
     @csrf
 
     <div class="card card-outline card-success shadow-sm">
@@ -106,5 +108,5 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/examenes-form.js') }}"></script>
+    <script src="{{ asset('js/examenes-form.js') }}"></script>
 @endpush
