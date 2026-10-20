@@ -4,6 +4,16 @@
 @section('page_title', 'Reportes de Asistencia')
 
 @section('content')
+@php
+    // Los mismos filtros de la pantalla viajan al PDF y al Excel
+    $filtros = [
+        'fecha_desde'  => $fechaDesde,
+        'fecha_hasta'  => $fechaHasta,
+        'curso'        => $cursoFiltro,
+        'tipo_reporte' => $tipoReporte,
+    ];
+@endphp
+
 <!-- Encabezado con acciones -->
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
@@ -32,19 +42,17 @@
                     <label class="form-label small text-muted font-weight-bold">Curso</label>
                     <select name="curso" class="form-control custom-select">
                         <option value="">Todos los cursos</option>
-                        @foreach(['1ro Secundaria', '2do Secundaria', '3ro Secundaria', '4to Secundaria', '5to Secundaria', '6to Secundaria'] as $c)
-                            <option value="{{ $c }}" {{ $cursoFiltro == $c ? 'selected' : '' }}>{{ $c }}</option>
+                        @foreach($listaCursos as $valor => $nombre)
+                            <option value="{{ $valor }}" {{ (string) $cursoFiltro === (string) $valor ? 'selected' : '' }}>{{ $nombre }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label small text-muted font-weight-bold">Tipo de reporte</label>
                     <select name="tipo_reporte" class="form-control custom-select">
-                        <option value="general" {{ $tipoReporte == 'general' ? 'selected' : '' }}>Resumen general</option>
-                        <option value="estudiante" {{ $tipoReporte == 'estudiante' ? 'selected' : '' }}>Por estudiante</option>
-                        <option value="curso" {{ $tipoReporte == 'curso' ? 'selected' : '' }}>Por curso</option>
-                        <option value="tardanzas" {{ $tipoReporte == 'tardanzas' ? 'selected' : '' }}>Tardanzas</option>
-                        <option value="ausencias" {{ $tipoReporte == 'ausencias' ? 'selected' : '' }}>Ausencias</option>
+                        @foreach($tiposReporte as $valor => $nombre)
+                            <option value="{{ $valor }}" {{ $tipoReporte === $valor ? 'selected' : '' }}>{{ $nombre }}</option>
+                        @endforeach
                     </select>
                 </div>
             </div>
@@ -103,52 +111,125 @@
 <!-- Tabla de Resultados del Reporte -->
 <div class="card card-outline card-success shadow-sm">
     <div class="card-header border-0 d-flex justify-content-between align-items-center py-3">
-        <h3 class="card-title font-weight-bold text-dark m-0">Resultados del reporte</h3>
+        <h3 class="card-title font-weight-bold text-dark m-0">
+            Resultados: {{ $tiposReporte[$tipoReporte] }}
+        </h3>
         <div class="card-tools m-0">
-            <button class="btn btn-outline-success btn-sm mr-1">
+            <a href="{{ route('reportes.excel', $filtros) }}" class="btn btn-outline-success btn-sm mr-1">
                 <i class="bi bi-file-earmark-excel mr-1"></i> Excel
-            </button>
-            <button class="btn btn-outline-danger btn-sm">
+            </a>
+            <a href="{{ route('reportes.pdf', $filtros) }}" class="btn btn-outline-danger btn-sm">
                 <i class="bi bi-file-earmark-pdf mr-1"></i> PDF
-            </button>
+            </a>
         </div>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle">
-                <thead style="background-color: #e8f5e9;">
-                    <tr>
-                        <th class="pl-4">Curso</th>
-                        <th>Estudiantes Activos</th>
-                        <th>Presentes</th>
-                        <th>Tardanzas</th>
-                        <th>Ausencias</th>
-                        <th>% Asistencia</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($reporteCursos as $fila)
+
+            @if($tipoReporte === 'estudiante')
+                <table class="table table-hover mb-0 align-middle">
+                    <thead style="background-color: #e8f5e9;">
                         <tr>
-                            <td class="pl-4 font-weight-bold">{{ $fila['curso'] }}</td>
-                            <td>{{ number_format($fila['total_estudiantes']) }}</td>
-                            <td>{{ number_format($fila['presentes']) }}</td>
-                            <td>{{ number_format($fila['tardanzas']) }}</td>
-                            <td>{{ number_format($fila['ausencias']) }}</td>
-                            <td>
-                                <strong class="{{ $fila['porcentaje'] >= 90 ? 'text-success' : 'text-danger' }}">
-                                    {{ $fila['porcentaje'] }}%
-                                </strong>
-                            </td>
+                            <th class="pl-4">Código</th>
+                            <th>Estudiante</th>
+                            <th>Curso</th>
+                            <th>Presentes</th>
+                            <th>Tardanzas</th>
+                            <th>Ausencias</th>
+                            <th>% Asistencia</th>
+                            <th>Observación</th>
                         </tr>
-                    @empty
+                    </thead>
+                    <tbody>
+                        @forelse($porEstudiante as $e)
+                            @php
+                                $colorObs = ['Puntual' => 'success', 'Impuntual' => 'warning', 'Irregular' => 'danger'][$e['observacion']] ?? 'secondary';
+                            @endphp
+                            <tr>
+                                <td class="pl-4">{{ $e['codigo'] }}</td>
+                                <td class="font-weight-bold">{{ $e['nombre'] }}</td>
+                                <td>{{ $e['curso'] }}</td>
+                                <td>{{ $e['presentes'] }}</td>
+                                <td>{{ $e['tardanzas'] }}</td>
+                                <td>{{ $e['ausencias'] }}</td>
+                                <td><strong>{{ $e['porcentaje'] }}%</strong></td>
+                                <td><span class="badge badge-{{ $colorObs }}">{{ $e['observacion'] }}</span></td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="8" class="text-center py-4 text-muted">No hay estudiantes para este filtro.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+                <div class="px-4 py-2 small text-muted">
+                    Observación automática: <strong>Irregular</strong> = 20 % o más de ausencias ·
+                    <strong>Impuntual</strong> = 20 % o más de tardanzas · <strong>Puntual</strong> = el resto.
+                </div>
+
+            @elseif(in_array($tipoReporte, ['tardanzas', 'ausencias']))
+                <table class="table table-hover mb-0 align-middle">
+                    <thead style="background-color: #e8f5e9;">
                         <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">
-                                No se encontraron datos para generar el reporte.
-                            </td>
+                            <th class="pl-4">Fecha</th>
+                            <th>Hora</th>
+                            <th>Código</th>
+                            <th>Estudiante</th>
+                            <th>Curso</th>
+                            <th>Registrado por</th>
                         </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @forelse($registros as $r)
+                            <tr>
+                                <td class="pl-4">{{ \Carbon\Carbon::parse($r->fecha)->format('d/m/Y') }}</td>
+                                <td>{{ $r->hora_ingreso ? substr($r->hora_ingreso, 0, 5) : '—' }}</td>
+                                <td>{{ $r->estudiante->codigo_estudiante ?? '' }}</td>
+                                <td class="font-weight-bold">{{ $r->estudiante->apellidos ?? '' }} {{ $r->estudiante->nombres ?? '' }}</td>
+                                <td>{{ $r->estudiante->curso ?? '' }}° {{ $r->estudiante->paralelo ?? '' }}</td>
+                                <td>{{ $r->registrado_por }}</td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="6" class="text-center py-4 text-muted">No hay registros en este periodo.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+
+            @else
+                <table class="table table-hover mb-0 align-middle">
+                    <thead style="background-color: #e8f5e9;">
+                        <tr>
+                            <th class="pl-4">Curso</th>
+                            <th>Estudiantes Activos</th>
+                            <th>Presentes</th>
+                            <th>Tardanzas</th>
+                            <th>Ausencias</th>
+                            <th>% Asistencia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($reporteCursos as $fila)
+                            <tr>
+                                <td class="pl-4 font-weight-bold">{{ $fila['curso'] }}</td>
+                                <td>{{ number_format($fila['total_estudiantes']) }}</td>
+                                <td>{{ number_format($fila['presentes']) }}</td>
+                                <td>{{ number_format($fila['tardanzas']) }}</td>
+                                <td>{{ number_format($fila['ausencias']) }}</td>
+                                <td>
+                                    <strong class="{{ $fila['porcentaje'] >= 90 ? 'text-success' : 'text-danger' }}">
+                                        {{ $fila['porcentaje'] }}%
+                                    </strong>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    No se encontraron datos para generar el reporte.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            @endif
+
         </div>
     </div>
 </div>
