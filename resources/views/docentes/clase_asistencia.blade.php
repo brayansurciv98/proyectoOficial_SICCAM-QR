@@ -71,7 +71,7 @@
                         <th>#</th>
                         <th>Estudiante</th>
                         <th>Ingreso al colegio</th>
-                        <th style="width:220px;">En esta clase</th>
+                        <th style="width:220px;">Asistecio a clases</th>
                     </tr>
                 </thead>
                 <tbody>
