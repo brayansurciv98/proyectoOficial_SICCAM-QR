@@ -25,7 +25,7 @@
             <div class="col-md-4 form-group mb-md-0">
                 <label>Curso / Paralelo</label>
                 <select name="curso_paralelo" class="form-control" required>
-                    <option value="">Seleccione...</option>
+                    <option value="">Seleccione</option>
                     @foreach($cursosAsignados as $c)
                         @php
                             $value = $c['curso'] . '|' . $c['paralelo'];
