@@ -57,15 +57,19 @@
     <input type="hidden" name="filtro" value="{{ $filtro }}">
 
     <div class="card card-outline card-success shadow-sm">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <strong>{{ $estudiantes->count() }} estudiante(s)</strong>
-            <button type="submit" class="btn btn-success btn-sm">
-                <i class="fas fa-save"></i> Guardar asistencia
-            </button>
+        <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
+            <strong class="mr-3">{{ $estudiantes->count() }} estudiante(s)</strong>
+            <div class="d-flex align-items-center mt-2 mt-md-0">
+                <input type="search" class="form-control form-control-sm mr-2" style="width:230px"
+                       data-filtro-tabla="tabla-clase" placeholder="Buscar nombre, apellido o código...">
+                <button type="submit" class="btn btn-success btn-sm text-nowrap">
+                    <i class="fas fa-save"></i> Guardar asistencia
+                </button>
+            </div>
         </div>
 
         <div class="card-body table-responsive p-0">
-            <table class="table table-hover mb-0">
+            <table class="table table-hover mb-0" id="tabla-clase">
                 <thead class="bg-light">
                     <tr>
                         <th>#</th>
@@ -120,3 +124,7 @@
 @endif
 
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('js/filtro-tabla.js') }}"></script>
+@endpush

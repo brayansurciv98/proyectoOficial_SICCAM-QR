@@ -70,6 +70,13 @@
                     </select>
                 </div>
 
+                <div class="col-md-12 form-group mt-n2">
+                    <small id="ayuda-docente-materia" class="text-muted"></small>
+                    <button type="button" id="limpiar-docente-materia" class="btn btn-link btn-sm p-0 ml-2 align-baseline">
+                        Limpiar
+                    </button>
+                </div>
+
                 <div class="col-md-3 form-group">
                     <label>Curso <span class="text-danger">*</span></label>
                     <select name="curso" class="form-control" required>

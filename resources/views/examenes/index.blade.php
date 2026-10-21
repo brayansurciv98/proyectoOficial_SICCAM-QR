@@ -9,16 +9,20 @@
     <div class="alert alert-success">{{ session('success') }}</div>
 @endif
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h5 class="mb-0 font-weight-bold">Listado de exámenes</h5>
-    <a href="{{ route('examenes.create') }}" class="btn btn-verde">
-        <i class="bi bi-plus-lg"></i> Programar examen
-    </a>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <h5 class="mb-0 font-weight-bold mr-3">Listado de exámenes</h5>
+    <div class="d-flex align-items-center mt-2 mt-md-0">
+        <input type="search" class="form-control mr-2" style="width:280px"
+               data-filtro-tabla="tabla-examenes" placeholder="Buscar título, materia, curso o docente...">
+        <a href="{{ route('examenes.create') }}" class="btn btn-verde text-nowrap">
+            <i class="bi bi-plus-lg"></i> Programar examen
+        </a>
+    </div>
 </div>
 
 <div class="card card-outline card-success shadow-sm">
     <div class="card-body table-responsive p-0">
-        <table class="table table-hover mb-0">
+        <table class="table table-hover mb-0" id="tabla-examenes">
             <thead class="bg-light">
                 <tr>
                     <th>Fecha</th>
@@ -51,7 +55,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr>
+                    <tr data-sin-filtro>
                         <td colspan="7" class="text-center py-4 text-muted">
                             No hay exámenes programados.
                         </td>
@@ -62,3 +66,7 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('js/filtro-tabla.js') }}"></script>
+@endpush

@@ -53,15 +53,26 @@ class AsistenciaController extends Controller
     {
         $curso = $request->get('curso');
         $paralelo = $request->get('paralelo');
+        $buscar = trim((string) $request->get('buscar'));
         $fecha = $request->get('fecha', Carbon::today()->format('Y-m-d'));
 
         $estudiantes = collect();
         $asistenciasHoy = collect();
 
-        if ($curso) {
-            $estudiantes = Estudiante::where('curso', $curso)
+        // Por curso, por nombre/apellido/código/CI, o ambos
+        if ($curso || $buscar !== '') {
+            $estudiantes = Estudiante::where('estado', 'activo')
+                ->when($curso, fn ($q) => $q->where('curso', $curso))
                 ->when($paralelo, fn ($q) => $q->where('paralelo', $paralelo))
-                ->where('estado', 'activo')
+                ->when($buscar !== '', function ($q) use ($buscar) {
+                    // Cada palabra debe aparecer en algún dato: "Ana Quispe" o "Quispe Ana"
+                    foreach (preg_split('/\s+/', $buscar) as $palabra) {
+                        $q->where(fn ($q) => $q->where('nombres', 'LIKE', "%{$palabra}%")
+                            ->orWhere('apellidos', 'LIKE', "%{$palabra}%")
+                            ->orWhere('codigo_estudiante', 'LIKE', "%{$palabra}%")
+                            ->orWhere('ci', 'LIKE', "%{$palabra}%"));
+                    }
+                })
                 ->orderBy('apellidos')
                 ->orderBy('nombres')
                 ->get();
@@ -73,7 +84,7 @@ class AsistenciaController extends Controller
         }
 
         return view('asistencias.manual', compact(
-            'estudiantes', 'curso', 'paralelo', 'fecha', 'asistenciasHoy'
+            'estudiantes', 'curso', 'paralelo', 'buscar', 'fecha', 'asistenciasHoy'
         ));
     }
 

@@ -19,16 +19,20 @@
     </div>
 @endif
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h5 class="mb-0 font-weight-bold">Exámenes programados</h5>
-    <a href="{{ route('docente.examenes.create') }}" class="btn btn-success">
-        <i class="bi bi-plus-lg"></i> Programar examen
-    </a>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <h5 class="mb-0 font-weight-bold mr-3">Exámenes programados</h5>
+    <div class="d-flex align-items-center mt-2 mt-md-0">
+        <input type="search" class="form-control mr-2" style="width:260px"
+               data-filtro-tabla="tabla-examenes" placeholder="Buscar título, materia o curso...">
+        <a href="{{ route('docente.examenes.create') }}" class="btn btn-success text-nowrap">
+            <i class="bi bi-plus-lg"></i> Programar examen
+        </a>
+    </div>
 </div>
 
 <div class="card card-outline card-success shadow-sm">
     <div class="card-body table-responsive p-0">
-        <table class="table table-hover mb-0">
+        <table class="table table-hover mb-0" id="tabla-examenes">
             <thead class="bg-light">
                 <tr>
                     <th>Título</th>
@@ -73,7 +77,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr>
+                    <tr data-sin-filtro>
                         <td colspan="6" class="text-center text-muted py-4">
                             No tienes exámenes programados.
                         </td>
@@ -114,4 +118,5 @@
 
 @push('scripts')
     <script src="{{ asset('js/examenes-docente-index.js') }}"></script>
+    <script src="{{ asset('js/filtro-tabla.js') }}"></script>
 @endpush
