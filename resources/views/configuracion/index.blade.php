@@ -27,7 +27,7 @@
             <div class="card-body p-2">
                 <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                     <a class="nav-link {{ $tabActiva === 'institucion' ? 'active' : '' }}" id="tab-institucion" data-toggle="pill" href="#content-institucion" role="tab">
-                        <i class="bi bi-building mr-2"></i> Datos Institución
+                        <i class="bi bi-building mr-2"></i> Datos de la Institución
                     </a>
                     <a class="nav-link {{ $tabActiva === 'horarios' ? 'active' : '' }}" id="tab-horarios" data-toggle="pill" href="#content-horarios" role="tab">
                         <i class="bi bi-clock mr-2"></i> Horarios de Ingreso
