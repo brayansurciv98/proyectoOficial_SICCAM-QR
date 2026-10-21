@@ -62,7 +62,7 @@
     </div>
 
     <div class="footer">
-        Guarde este documento. El tutor usará estas credenciales para ingresar a la App.<br>
+        Guarde este documento. El tutor usará estas credenciales para ingresar a la Aplicacion<br>
         No se modificó la contraseña; solo se recuperaron los datos de acceso.
     </div>
 </body>
