@@ -54,7 +54,9 @@ def cargar_config():
 
 
 def reloj_sincronizado():
-    """True/False según NTP; None si no se puede saber (p. ej. fuera de Linux)."""
+    """True si la hora vino de NTP o de la laptop (sincronizar_hora.sh); None si no se puede saber."""
+    if Path("/run/siccam-hora-ok").exists():
+        return True
     try:
         salida = subprocess.run(
             ["timedatectl", "show", "-p", "NTPSynchronized", "--value"],
@@ -291,7 +293,7 @@ class Captura(threading.Thread):
             self._ultimo_reloj = ahora
             self.estado.reloj_ok = reloj_sincronizado()
             if self.estado.reloj_ok is False:
-                log.warning("El reloj de la Pi NO está sincronizado (NTP): las horas pueden ser incorrectas")
+                log.warning("La Pi aún no tomó la hora de la laptop ni de internet: las horas pueden ser incorrectas")
 
 
 class LectorQR(threading.Thread):
