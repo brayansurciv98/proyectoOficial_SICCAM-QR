@@ -31,12 +31,24 @@ class ExamenController extends Controller
 
         $materias = Materia::orderBy('nombre')->get();
 
-        // Clases de todos los docentes: el formulario avisa si el examen no cae en una
+        // Clases de todos los docentes: la guía de horario del formulario muestra las del docente elegido
         $horariosJs = $this->horariosParaFormulario(
-            Horario::where('estado', 'activo')->get()
+            Horario::with('materia')->where('estado', 'activo')->get()
         );
 
-        return view('examenes.create', compact('docentes', 'materias', 'horariosJs'));
+        // Exámenes ya programados: la guía marca esas fechas como ocupadas
+        $examenesJs = Examen::whereDate('fecha', '>=', today())
+            ->get()
+            ->map(fn ($e) => [
+                'curso'    => (string) $e->curso,
+                'paralelo' => $e->paralelo,
+                'fecha'    => $e->fecha->toDateString(),
+                'hora'     => $e->hora ? substr($e->hora, 0, 5) : null,
+            ])
+            ->values()
+            ->all();
+
+        return view('examenes.create', compact('docentes', 'materias', 'horariosJs', 'examenesJs'));
     }
 
     public function store(Request $request, ValidadorExamen $validador)
@@ -124,6 +136,7 @@ class ExamenController extends Controller
 
         // Sus clases: solo puede programar exámenes en estos días y horas
         $horarios = $docente->horarios()
+            ->with('materia')
             ->where('estado', 'activo')
             ->orderBy('dia')
             ->orderBy('hora_inicio')
@@ -206,17 +219,19 @@ class ExamenController extends Controller
     }
 
     /**
-     * Datos mínimos de los horarios para public/js/examenes-horario.js
+     * Datos mínimos de los horarios para los formularios de examen (guía de horario)
      */
     private function horariosParaFormulario($horarios): array
     {
         return $horarios->map(fn ($h) => [
             'docente'  => $h->docente_id,
             'dia'      => (int) $h->dia,
+            'bloque'   => (int) $h->bloque,
             'inicio'   => substr($h->hora_inicio, 0, 5),
             'fin'      => substr($h->hora_fin, 0, 5),
             'curso'    => (string) $h->curso,
             'paralelo' => $h->paralelo,
+            'materia'  => $h->materia->nombre ?? '',
         ])->values()->all();
     }
 }
