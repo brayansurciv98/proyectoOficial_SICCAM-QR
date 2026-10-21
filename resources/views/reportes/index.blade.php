@@ -18,7 +18,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <h5 class="mb-1 font-weight-bold text-dark">Reportes de Asistencia</h5>
-        <small class="text-muted">Generación y consulta de reportes detallados</small>
+        <small class="text-muted">Generación y Consulta de Reportes Detallados</small>
     </div>
 </div>
 
