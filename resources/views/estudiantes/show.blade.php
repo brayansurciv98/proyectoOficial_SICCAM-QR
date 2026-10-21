@@ -15,7 +15,7 @@
     </div>
     <div>
         <a href="{{ route('estudiantes.index') }}" class="btn btn-outline-secondary btn-sm mr-1">
-            <i class="bi bi-arrow-left"></i> Volver al listado
+            <i class="bi bi-arrow-left"></i> Volver al Listado
         </a>
         <a href="{{ route('estudiantes.edit', $estudiante) }}" class="btn btn-success btn-sm">
             <i class="bi bi-pencil-square"></i> Editar Datos
