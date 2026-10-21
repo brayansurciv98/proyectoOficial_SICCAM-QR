@@ -8,7 +8,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <h5 class="mb-1 font-weight-bold text-dark">Comunicados a Padres de Familia</h5>
-        <small class="text-muted">Envío y gestión de notificaciones</small>
+        <small class="text-muted">Envío y gestión de Notificaciones</small>
     </div>
 </div>
 
