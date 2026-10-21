@@ -34,7 +34,7 @@
         <div class="btn-group mt-2 mt-md-0">
             <a href="{{ route('docente.clases.asistencia', ['horario' => $horario->id]) }}"
                class="btn btn-sm {{ $filtro === 'todos' ? 'btn-success' : 'btn-outline-success' }}">
-                Lista general
+                Lista general.
             </a>
             <a href="{{ route('docente.clases.asistencia', ['horario' => $horario->id, 'filtro' => 'faltantes']) }}"
                class="btn btn-sm {{ $filtro === 'faltantes' ? 'btn-danger' : 'btn-outline-danger' }}">
