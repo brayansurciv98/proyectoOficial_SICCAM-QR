@@ -6,7 +6,7 @@
     <div class="d-flex justify-content-between align-items-center">
         <h1 class="m-0">
             <i class="fas fa-user-plus text-success"></i>
-            Registrar Estudiante + Tutor
+            Registrar Estudiante <i class="fa fa-youtube-play" aria-hidden="true"></i> Tutor
         </h1>
         <a href="{{ route('estudiantes.index') }}" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Volver
