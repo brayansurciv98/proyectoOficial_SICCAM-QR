@@ -14,7 +14,6 @@ class AsistenciaClase extends Model
         'docente_id',
         'fecha',
         'estado',
-        'observacion',
     ];
 
     protected $casts = [

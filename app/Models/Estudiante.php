@@ -17,7 +17,6 @@ class Estudiante extends Model
         'genero',
         'curso',
         'paralelo',
-        'foto',
         'qr_data',
         'qr_imagen',
         'estado',

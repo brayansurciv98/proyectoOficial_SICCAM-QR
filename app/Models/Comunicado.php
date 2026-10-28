@@ -16,17 +16,9 @@ class Comunicado extends Model
         'mensaje',
         'destinatario',
         'curso_destino',
-        'paralelo_destino',
-        'tutor_id',
-        'canal',
         'estado',
         'user_id',
     ];
-
-    public function tutor()
-    {
-        return $this->belongsTo(Tutor::class, 'tutor_id');
-    }
 
     public function usuario()
     {
