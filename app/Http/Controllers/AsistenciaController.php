@@ -91,9 +91,13 @@ class AsistenciaController extends Controller
     public function storeManual(Request $request)
     {
         $request->validate([
-            'fecha'     => ['required', 'date'],
+            // Una asistencia futura haría que ese día el QR salga como "ya registrado"
+            'fecha'     => ['required', 'date', 'before_or_equal:today'],
             'estados'   => ['required', 'array'],
             'estados.*' => ['nullable', 'in:' . implode(',', Asistencia::ESTADOS)],
+        ], [
+            'fecha.before_or_equal' => 'No se puede registrar asistencia de una fecha futura.',
+            'estados.required'      => 'Marque el estado de al menos un estudiante.',
         ]);
 
         $fecha = $request->fecha;
@@ -195,11 +199,13 @@ public function storeManualDocente(Request $request)
     $docente->load('cursos');
 
     $request->validate([
-        'fecha' => ['required', 'date'],
+        'fecha' => ['required', 'date', 'before_or_equal:today'],
         'curso' => ['required'],
         'paralelo' => ['required', 'in:A,B,C'],
         'asistencias' => ['required', 'array'],
         'asistencias.*.estado' => ['required', 'in:presente,tardanza,ausente'],
+    ], [
+        'fecha.before_or_equal' => 'No se puede registrar asistencia de una fecha futura.',
     ]);
 
     $curso = (string) $request->curso;

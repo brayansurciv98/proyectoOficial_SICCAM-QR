@@ -174,7 +174,7 @@
 
         <div class="card-footer text-center bg-light py-2">
             <small class="text-muted font-weight-bold">
-                Unidad Educativa René Barrientos Ortuño "A"
+                {{ \App\Models\Configuracion::colegio() }}
             </small>
         </div>
     </div>

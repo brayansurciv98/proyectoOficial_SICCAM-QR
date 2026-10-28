@@ -21,6 +21,16 @@
     </div>
 @endif
 
+@if($errors->any())
+    <div class="alert alert-danger shadow-sm">
+        <ul class="mb-0">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 <div class="row">
     <!-- Formulario de nuevo comunicado -->
     <div class="col-lg-5 mb-4">
@@ -37,7 +47,7 @@
 
                     <div class="form-group mb-3">
                         <label class="form-label small text-muted font-weight-bold">Título del comunicado</label>
-                        <input type="text" name="titulo" class="form-control" placeholder="Ej: Reunión de padres de familia" required>
+                        <input type="text" name="titulo" class="form-control" placeholder="Ej: Reunión de padres de familia" maxlength="100" value="{{ old('titulo') }}" required>
                     </div>
 
                     <div class="form-group mb-3">
@@ -55,7 +65,8 @@
 
                     <div class="form-group mb-3">
                         <label class="form-label small text-muted font-weight-bold">Mensaje</label>
-                        <textarea name="mensaje" class="form-control" rows="5" placeholder="Escribe el contenido del comunicado..." required></textarea>
+                        <textarea name="mensaje" class="form-control" rows="5" maxlength="1000" placeholder="Escribe el contenido del comunicado..." required>{{ old('mensaje') }}</textarea>
+                        <small class="form-text text-muted">Máximo 1000 caracteres (llega como notificación al celular).</small>
                     </div>
 
                     <div class="d-flex flex-column gap-2">

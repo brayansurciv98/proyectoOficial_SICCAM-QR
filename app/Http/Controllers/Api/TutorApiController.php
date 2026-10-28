@@ -27,34 +27,29 @@ class TutorApiController extends Controller
             ->orWhere('email', $login)
             ->first();
 
-        if (!$tutor) {
+        // Validar password hasheado o clave_inicial
+        $passwordOk = false;
+
+        if ($tutor && !empty($tutor->password) && Hash::check($password, $tutor->password)) {
+            $passwordOk = true;
+        } elseif ($tutor && !empty($tutor->clave_inicial) && hash_equals((string) $tutor->clave_inicial, $password)) {
+            $passwordOk = true;
+        }
+
+        // Mismo mensaje si el usuario no existe o la contraseña es incorrecta:
+        // así no se puede averiguar qué CI o correos están registrados
+        if (!$passwordOk) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tutor no encontrado'
-            ], 404);
+                'message' => 'Usuario o contraseña incorrectos'
+            ], 401);
         }
 
         if ($tutor->estado !== 'activo') {
             return response()->json([
                 'success' => false,
-                'message' => 'Tutor inactivo'
+                'message' => 'Su cuenta está inactiva. Comuníquese con la unidad educativa.'
             ], 403);
-        }
-
-        // Validar password hasheado o clave_inicial
-        $passwordOk = false;
-
-        if (!empty($tutor->password) && Hash::check($password, $tutor->password)) {
-            $passwordOk = true;
-        } elseif (!empty($tutor->clave_inicial) && $password === $tutor->clave_inicial) {
-            $passwordOk = true;
-        }
-
-        if (!$passwordOk) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Credenciales incorrectas'
-            ], 401);
         }
 
         // Token Sanctum real

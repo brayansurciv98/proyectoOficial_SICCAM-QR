@@ -25,11 +25,15 @@ class ComunicadoController extends Controller
 
     public function store(Request $request)
     {
+        // Llega como notificación push: título y mensaje con largo limitado
         $request->validate([
-            'titulo' => 'required|string|max:255',
+            'titulo' => 'required|string|max:100',
             'destinatario' => 'required|in:todos,1,2,3,4,5,6',
-            'mensaje' => 'required|string',
+            'mensaje' => 'required|string|max:1000',
             'accion' => 'required|in:enviar,borrador',
+        ], [
+            'titulo.max' => 'El título puede tener como máximo 100 caracteres.',
+            'mensaje.max' => 'El mensaje puede tener como máximo 1000 caracteres.',
         ]);
 
         // Determinar tipo de destinatario y curso destino
@@ -48,7 +52,6 @@ class ComunicadoController extends Controller
             'mensaje' => $request->mensaje,
             'destinatario' => $destinatarioTipo,
             'curso_destino' => $cursoDestino,
-            'canal' => 'sistema',
             'estado' => $estado,
             'user_id' => Auth::id(),
         ]);

@@ -76,9 +76,10 @@
                                class="form-control @error('tutor_ci') is-invalid @enderror"
                                value="{{ old('tutor_ci') }}"
                                inputmode="numeric"
-                               pattern="^[0-9]+$"
-                               title="Solo números"
+                               pattern="^[0-9]{5,10}$" maxlength="10"
+                               title="Entre 5 y 10 números"
                                placeholder="Ej: 9894100">
+                        <small class="form-text text-muted">Ingrese el CI o el correo: con ellos el tutor entra a la app.</small>
                         @error('tutor_ci') <span class="invalid-feedback">{{ $message }}</span> @enderror
                     </div>
 
@@ -88,8 +89,8 @@
                                class="form-control @error('tutor_telefono') is-invalid @enderror"
                                value="{{ old('tutor_telefono') }}"
                                inputmode="numeric"
-                               pattern="^[0-9]+$"
-                               title="Solo números"
+                               pattern="^[0-9]{7,8}$" maxlength="8"
+                               title="7 u 8 números"
                                placeholder="Ej: 70012345">
                         @error('tutor_telefono') <span class="invalid-feedback">{{ $message }}</span> @enderror
                     </div>
@@ -153,8 +154,8 @@
                                class="form-control @error('ci') is-invalid @enderror"
                                value="{{ old('ci') }}"
                                inputmode="numeric"
-                               pattern="^[0-9]+$"
-                               title="Solo números">
+                               pattern="^[0-9]{5,10}$" maxlength="10"
+                               title="Entre 5 y 10 números">
                         @error('ci') <span class="invalid-feedback">{{ $message }}</span> @enderror
                     </div>
 
@@ -162,7 +163,8 @@
                         <label for="fecha_nacimiento">Fecha de Nacimiento</label>
                         <input type="date" name="fecha_nacimiento" id="fecha_nacimiento"
                                class="form-control @error('fecha_nacimiento') is-invalid @enderror"
-                               value="{{ old('fecha_nacimiento') }}">
+                               value="{{ old('fecha_nacimiento') }}"
+                               max="{{ now()->subDay()->toDateString() }}">
                         @error('fecha_nacimiento') <span class="invalid-feedback">{{ $message }}</span> @enderror
                     </div>
 
@@ -195,9 +197,9 @@
                         </div>
                         <div class="col-md-5">
                             <div class="form-group">
-                                <label for="paralelo">Paralelo</label>
+                                <label for="paralelo">Paralelo <span class="text-danger">*</span></label>
                                 <select name="paralelo" id="paralelo"
-                                        class="form-control @error('paralelo') is-invalid @enderror">
+                                        class="form-control @error('paralelo') is-invalid @enderror" required>
                                     <option value="">Seleccione...</option>
                                     <option value="A" {{ old('paralelo', $estudiante->paralelo ?? '') == 'A' ? 'selected' : '' }}>A</option>
                                     <option value="B" {{ old('paralelo', $estudiante->paralelo ?? '') == 'B' ? 'selected' : '' }}>B</option>

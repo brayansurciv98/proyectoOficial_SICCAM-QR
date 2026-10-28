@@ -10,6 +10,7 @@ use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class EstudianteController extends Controller
 {
@@ -32,37 +33,15 @@ class EstudianteController extends Controller
     // Guardar estudiante + tutor + QR (STORE)
     public function store(Request $request)
 {
-    $request->validate([
-    // Tutor
-    'tutor_nombres'   => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
-    'tutor_apellidos' => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
-    'tutor_ci'        => ['nullable', 'regex:/^[0-9]+$/', 'max:20'],
-    'tutor_telefono'  => ['nullable', 'regex:/^[0-9]+$/', 'max:20'],
-    'tutor_email'     => ['nullable', 'email', 'max:150'],
-
-    // Estudiante
-    'nombres'          => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
-    'apellidos'        => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
-    'ci'               => ['nullable', 'regex:/^[0-9]+$/', 'max:20'],
-    'fecha_nacimiento' => ['nullable', 'date'],
-    'genero'           => ['nullable', 'in:M,F,Otro'],
-    'curso'            => ['required', 'integer', 'min:1', 'max:6'],
-    'paralelo'         => ['nullable', 'in:A,B,C'],
-    'parentesco'       => ['nullable', 'string', 'max:50'],
-], [
-    'tutor_nombres.regex'   => 'Los nombres del tutor solo deben contener letras.',
-    'tutor_apellidos.regex' => 'Los apellidos del tutor solo deben contener letras.',
-    'tutor_ci.regex'        => 'El CI del tutor solo debe contener números.',
-    'tutor_telefono.regex'  => 'El teléfono solo debe contener números.',
-    'nombres.regex'         => 'Los nombres del estudiante solo deben contener letras.',
-    'apellidos.regex'       => 'Los apellidos del estudiante solo deben contener letras.',
-    'ci.regex'              => 'El CI del estudiante solo debe contener números.',
-    'curso.required'        => 'El curso es obligatorio.',
-    'curso.integer'         => 'El curso debe ser un número entre 1 y 6.',
-    'curso.min'             => 'El curso debe ser entre 1 y 6.',
-    'curso.max'             => 'El curso debe ser entre 1 y 6.',
-    'paralelo.regex'        => 'El paralelo solo debe contener letras (ej: A, B, C).',
-]);
+    $request->validate($this->reglasEstudiante() + [
+        // Tutor: entra a la app con su CI o su correo, al menos uno es obligatorio
+        'tutor_nombres'   => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
+        'tutor_apellidos' => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
+        'tutor_ci'        => ['nullable', 'required_without:tutor_email', 'digits_between:5,10'],
+        'tutor_telefono'  => ['nullable', 'digits_between:7,8'],
+        'tutor_email'     => ['nullable', 'required_without:tutor_ci', 'email', 'max:150'],
+        'parentesco'      => ['nullable', 'string', 'max:50'],
+    ], $this->mensajes());
 
     // Normalizar textos
     $tutorNombres   = $this->capitalizarNombre($request->tutor_nombres);
@@ -76,18 +55,17 @@ class EstudianteController extends Controller
     $tutorCi       = $request->filled('tutor_ci') ? trim($request->tutor_ci) : null;
     $tutorEmail    = $request->filled('tutor_email') ? trim($request->tutor_email) : null;
 
-    // Buscar tutor por CI o email
-    $tutor = null;
-    if ($tutorCi || $tutorEmail) {
-        $tutor = Tutor::where(function ($query) use ($tutorCi, $tutorEmail) {
-            if ($tutorCi) {
-                $query->where('ci', $tutorCi);
-            }
-            if ($tutorEmail) {
-                $query->orWhere('email', $tutorEmail);
-            }
-        })->first();
+    // Buscar tutor por CI o email (si ya existe, el estudiante se vincula a él)
+    $porCi    = $tutorCi ? Tutor::where('ci', $tutorCi)->first() : null;
+    $porEmail = $tutorEmail ? Tutor::where('email', $tutorEmail)->first() : null;
+
+    if ($porCi && $porEmail && $porCi->id !== $porEmail->id) {
+        return back()
+            ->withErrors(['tutor_email' => "Ese correo ya pertenece a otro tutor ({$porEmail->nombres} {$porEmail->apellidos})."])
+            ->withInput();
     }
+
+    $tutor = $porCi ?? $porEmail;
 
     // Crear tutor si no existe
     if (!$tutor) {
@@ -181,33 +159,25 @@ class EstudianteController extends Controller
     // Actualizar datos del estudiante (UPDATE)
     public function update(Request $request, Estudiante $estudiante)
 {
-    // 1. Validar campos
-    $request->validate([
-    'nombres'          => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
-    'apellidos'        => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
-    'curso'            => ['required', 'integer', 'min:1', 'max:6'],
-    'paralelo'         => ['nullable', 'in:A,B,C'],
-    'estado'           => ['required', 'in:activo,inactivo,retirado'],
-    'ci'               => ['nullable', 'regex:/^[0-9]+$/', 'max:20', 'unique:estudiantes,ci,' . $estudiante->id],
-    'genero'           => ['nullable', 'in:M,F,Otro'],
-    'fecha_nacimiento' => ['nullable', 'date'],
+    // 1. Validar campos (el tutor, si se envía, debe ser uno de este estudiante)
+    $tutorId = $request->filled('tutor_id') ? (int) $request->tutor_id : null;
 
-    'tutor_nombres'   => ['nullable', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
-    'tutor_apellidos' => ['nullable', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
-    'tutor_telefono'  => ['nullable', 'regex:/^[0-9]+$/'],
-    'tutor_email'     => ['nullable', 'email', 'max:150'],
-], [
-    'nombres.regex'         => 'Los nombres solo deben contener letras.',
-    'apellidos.regex'       => 'Los apellidos solo deben contener letras.',
-    'curso.integer'         => 'El curso debe ser un número entre 1 y 6.',
-    'curso.min'             => 'El curso debe ser entre 1 y 6.',
-    'curso.max'             => 'El curso debe ser entre 1 y 6.',
-    'paralelo.in'           => 'El paralelo solo puede ser A, B o C.',
-    'ci.regex'              => 'El CI solo debe contener números.',
-    'tutor_nombres.regex'   => 'Los nombres del tutor solo deben contener letras.',
-    'tutor_apellidos.regex' => 'Los apellidos del tutor solo deben contener letras.',
-    'tutor_telefono.regex'  => 'El teléfono solo debe contener números.',
-]);
+    $request->validate($this->reglasEstudiante($estudiante) + [
+        'estado'          => ['required', 'in:activo,inactivo,retirado'],
+        'tutor_id'        => ['nullable', 'integer', Rule::exists('estudiante_tutor', 'tutor_id')->where('estudiante_id', $estudiante->id)],
+        'tutor_nombres'   => ['nullable', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
+        'tutor_apellidos' => ['nullable', 'required_with:tutor_nombres', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
+        'tutor_ci'        => ['nullable', 'digits_between:5,10', Rule::unique('tutores', 'ci')->ignore($tutorId)],
+        'tutor_telefono'  => ['nullable', 'digits_between:7,8'],
+        'tutor_email'     => ['nullable', 'email', 'max:150', Rule::unique('tutores', 'email')->ignore($tutorId)],
+    ], $this->mensajes());
+
+    // El tutor entra a la app con su CI o su correo: sin ninguno de los dos no podría hacerlo
+    if ($request->filled('tutor_nombres') && !$request->filled('tutor_ci') && !$request->filled('tutor_email')) {
+        return back()
+            ->withErrors(['tutor_ci' => 'Ingrese el CI o el correo del tutor: los usa para entrar a la app.'])
+            ->withInput();
+    }
 
     // 2. Normalizar y actualizar estudiante
     $nombres   = $this->capitalizarNombre($request->nombres);
@@ -231,12 +201,13 @@ class EstudianteController extends Controller
         $tutorData = [
             'nombres'   => $this->capitalizarNombre($request->tutor_nombres),
             'apellidos' => $this->capitalizarNombre($request->tutor_apellidos),
+            'ci'        => $request->tutor_ci ? trim($request->tutor_ci) : null,
             'telefono'  => $request->tutor_telefono ? trim($request->tutor_telefono) : null,
             'email'     => $request->tutor_email ? trim($request->tutor_email) : null,
         ];
 
-        if ($request->filled('tutor_id')) {
-            Tutor::where('id', $request->tutor_id)->update($tutorData);
+        if ($tutorId) {
+            Tutor::where('id', $tutorId)->update($tutorData);
         } else {
             $plainPassword = Str::random(8);
             $tutorData['password'] = Hash::make($plainPassword);
@@ -389,6 +360,51 @@ class EstudianteController extends Controller
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('estudiantes.credenciales_tutor_pdf', $data);
 
         return $pdf->download($nombreArchivo);
+    }
+
+    /**
+     * Reglas del estudiante, iguales al registrar y al editar.
+     * El paralelo es obligatorio: sin él no aparece en listas, horarios ni exámenes.
+     */
+    private function reglasEstudiante(?Estudiante $estudiante = null): array
+    {
+        return [
+            'nombres'          => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
+            'apellidos'        => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
+            'ci'               => ['nullable', 'digits_between:5,10', Rule::unique('estudiantes', 'ci')->ignore($estudiante?->id)],
+            'fecha_nacimiento' => ['nullable', 'date', 'before:today', 'after:' . now()->subYears(30)->toDateString()],
+            'genero'           => ['nullable', 'in:M,F,Otro'],
+            'curso'            => ['required', 'integer', 'min:1', 'max:6'],
+            'paralelo'         => ['required', 'in:A,B,C'],
+        ];
+    }
+
+    private function mensajes(): array
+    {
+        return [
+            'nombres.regex'                   => 'Los nombres del estudiante solo deben contener letras.',
+            'apellidos.regex'                 => 'Los apellidos del estudiante solo deben contener letras.',
+            'ci.digits_between'               => 'El CI del estudiante debe tener entre 5 y 10 números.',
+            'ci.unique'                       => 'Ya existe un estudiante con ese CI.',
+            'fecha_nacimiento.before'         => 'La fecha de nacimiento no puede ser hoy ni una fecha futura.',
+            'fecha_nacimiento.after'          => 'Revise la fecha de nacimiento: el estudiante tendría más de 30 años.',
+            'curso.required'                  => 'El curso es obligatorio.',
+            'curso.integer'                   => 'El curso debe ser un número entre 1 y 6.',
+            'curso.min'                       => 'El curso debe ser entre 1 y 6.',
+            'curso.max'                       => 'El curso debe ser entre 1 y 6.',
+            'paralelo.required'               => 'El paralelo es obligatorio.',
+            'paralelo.in'                     => 'El paralelo solo puede ser A, B o C.',
+            'tutor_nombres.regex'             => 'Los nombres del tutor solo deben contener letras.',
+            'tutor_apellidos.regex'           => 'Los apellidos del tutor solo deben contener letras.',
+            'tutor_apellidos.required_with'   => 'Ingrese los apellidos del tutor.',
+            'tutor_ci.required_without'       => 'Ingrese el CI o el correo del tutor: los usa para entrar a la app.',
+            'tutor_email.required_without'    => 'Ingrese el CI o el correo del tutor: los usa para entrar a la app.',
+            'tutor_ci.digits_between'         => 'El CI del tutor debe tener entre 5 y 10 números.',
+            'tutor_ci.unique'                 => 'Ese CI ya pertenece a otro tutor.',
+            'tutor_email.unique'              => 'Ese correo ya pertenece a otro tutor.',
+            'tutor_telefono.digits_between'   => 'El teléfono debe tener 7 u 8 números.',
+            'tutor_id.exists'                 => 'El tutor no corresponde a este estudiante.',
+        ];
     }
 
     private function capitalizarNombre(?string $texto): ?string

@@ -50,6 +50,23 @@ class Asistencia extends Model
     }
 
     /**
+     * Hora en que los que no registraron ingreso quedan como ausentes
+     * (Configuración → "Marcar ausencias a las"; por defecto, 5 min después de la hora límite).
+     */
+    public static function horaAusencias(Carbon $fecha): Carbon
+    {
+        $hora = Configuracion::valor('hora_marcar_ausencias');
+
+        if (!$hora) {
+            return self::horaLimite($fecha)->addMinutes(5);
+        }
+
+        [$h, $m] = array_map('intval', explode(':', $hora) + [0, 0]);
+
+        return $fecha->copy()->setTime($h, $m, 0);
+    }
+
+    /**
      * Presente hasta la hora límite (inclusive); después, tardanza.
      */
     public static function estadoPorHora(Carbon $momento): string

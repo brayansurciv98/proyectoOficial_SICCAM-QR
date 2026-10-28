@@ -8,6 +8,8 @@ use App\Models\Materia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class DocenteController extends Controller
 {
@@ -28,23 +30,8 @@ class DocenteController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'nombres'    => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
-            'apellidos'  => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
-            'ci'         => ['nullable', 'regex:/^[0-9]+$/', 'max:20', 'unique:docentes,ci'],
-            'email'      => ['nullable', 'email', 'max:150', 'unique:docentes,email'],
-            'telefono'   => ['nullable', 'regex:/^[0-9]+$/', 'max:20'],
-            'materia_id' => ['required', 'exists:materias,id'],
-            'cursos'     => ['required', 'array', 'min:1'],
-            'cursos.*.curso'    => ['required', 'integer', 'min:1', 'max:6'],
-            'cursos.*.paralelo' => ['required', 'in:A,B,C'],
-        ], [
-            'nombres.regex'   => 'Los nombres solo deben contener letras.',
-            'apellidos.regex' => 'Los apellidos solo deben contener letras.',
-            'ci.regex'        => 'El CI solo debe contener números.',
-            'telefono.regex'  => 'El teléfono solo debe contener números.',
-            'cursos.required' => 'Asigna al menos un curso.',
-        ]);
+        $request->validate($this->reglas(), $this->mensajes());
+        $this->validarCursos($request);
 
         $plainPassword = Str::random(8);
 
@@ -107,18 +94,11 @@ class DocenteController extends Controller
 
     public function update(Request $request, Docente $docente)
     {
-        $request->validate([
-            'nombres'    => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
-            'apellidos'  => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
-            'ci'         => ['nullable', 'regex:/^[0-9]+$/', 'max:20', 'unique:docentes,ci,' . $docente->id],
-            'email'      => ['nullable', 'email', 'max:150', 'unique:docentes,email,' . $docente->id],
-            'telefono'   => ['nullable', 'regex:/^[0-9]+$/', 'max:20'],
-            'materia_id' => ['required', 'exists:materias,id'],
-            'estado'     => ['required', 'in:activo,inactivo'],
-            'cursos'     => ['required', 'array', 'min:1'],
-            'cursos.*.curso'    => ['required', 'integer', 'min:1', 'max:6'],
-            'cursos.*.paralelo' => ['required', 'in:A,B,C'],
-        ]);
+        $request->validate(
+            $this->reglas($docente) + ['estado' => ['required', 'in:activo,inactivo']],
+            $this->mensajes()
+        );
+        $this->validarCursos($request, $docente);
 
         $docente->update([
             'nombres'    => $this->capitalizar($request->nombres),
@@ -201,6 +181,80 @@ class DocenteController extends Controller
         return $pdf->download($nombreArchivo);
     }
 
+
+    private function reglas(?Docente $docente = null): array
+    {
+        $id = $docente?->id;
+
+        return [
+            'nombres'    => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
+            'apellidos'  => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
+            // Inicia sesión con su CI o su correo: al menos uno es obligatorio
+            'ci'         => ['nullable', 'required_without:email', 'digits_between:5,10', Rule::unique('docentes', 'ci')->ignore($id)],
+            'email'      => ['nullable', 'required_without:ci', 'email', 'max:150', Rule::unique('docentes', 'email')->ignore($id)],
+            'telefono'   => ['nullable', 'digits_between:7,8'],
+            'materia_id' => ['required', 'exists:materias,id'],
+            'cursos'     => ['required', 'array', 'min:1'],
+            'cursos.*.curso'    => ['required', 'integer', 'min:1', 'max:6'],
+            'cursos.*.paralelo' => ['required', 'in:A,B,C'],
+        ];
+    }
+
+    private function mensajes(): array
+    {
+        return [
+            'nombres.regex'          => 'Los nombres solo deben contener letras.',
+            'apellidos.regex'        => 'Los apellidos solo deben contener letras.',
+            'ci.required_without'    => 'Ingrese el CI o el correo: el docente los usa para iniciar sesión.',
+            'email.required_without' => 'Ingrese el CI o el correo: el docente los usa para iniciar sesión.',
+            'ci.digits_between'      => 'El CI debe tener entre 5 y 10 números.',
+            'ci.unique'              => 'Ya existe un docente con ese CI.',
+            'email.unique'           => 'Ya existe un docente con ese correo.',
+            'telefono.digits_between' => 'El teléfono debe tener 7 u 8 números.',
+            'cursos.required'        => 'Asigna al menos un curso.',
+        ];
+    }
+
+    /**
+     * Cursos sin repetir y coherentes con sus horarios: no se puede quitar un curso
+     * ni cambiar la materia mientras tenga clases registradas en Horarios.
+     */
+    private function validarCursos(Request $request, ?Docente $docente = null): void
+    {
+        $elegidos = collect($request->cursos)
+            ->map(fn ($c) => (int) $c['curso'] . '|' . strtoupper($c['paralelo']));
+
+        $repetidos = $elegidos->duplicates()->unique();
+        if ($repetidos->isNotEmpty()) {
+            throw ValidationException::withMessages([
+                'cursos' => 'Hay cursos repetidos: ' . $repetidos->map(fn ($c) => str_replace('|', '° ', $c))->implode(', ') . '.',
+            ]);
+        }
+
+        if (!$docente) {
+            return;
+        }
+
+        $horarios = $docente->horarios()->get();
+
+        $otraMateria = $horarios->where('materia_id', '!=', (int) $request->materia_id)->count();
+        if ($otraMateria > 0) {
+            throw ValidationException::withMessages([
+                'materia_id' => "No se puede cambiar la materia: el docente tiene {$otraMateria} clase(s) en Horarios con su materia actual. Elimínelas primero.",
+            ]);
+        }
+
+        $quitados = $horarios
+            ->map(fn ($h) => (int) $h->curso . '|' . $h->paralelo)
+            ->unique()
+            ->diff($elegidos);
+        if ($quitados->isNotEmpty()) {
+            throw ValidationException::withMessages([
+                'cursos' => 'No se puede quitar ' . $quitados->map(fn ($c) => str_replace('|', '° ', $c))->implode(', ')
+                    . ': el docente tiene clases con ese curso en Horarios. Elimínelas primero.',
+            ]);
+        }
+    }
 
     private function capitalizar(?string $texto): ?string
     {

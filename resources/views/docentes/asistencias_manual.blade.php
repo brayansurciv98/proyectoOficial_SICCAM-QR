@@ -40,7 +40,7 @@
 
             <div class="col-md-3 form-group mb-md-0">
                 <label>Fecha</label>
-                <input type="date" name="fecha" class="form-control" value="{{ $fecha }}" required>
+                <input type="date" name="fecha" class="form-control" value="{{ $fecha }}" max="{{ today()->toDateString() }}" required>
             </div>
 
             <div class="col-md-3 form-group mb-md-0">

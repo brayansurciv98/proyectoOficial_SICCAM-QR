@@ -47,7 +47,7 @@
         </td>
         <td>
             <p class="titulo">Reporte de asistencia — {{ $tiposReporte[$tipoReporte] }}</p>
-            <p class="sub">Unidad Educativa René Barrientos Ortuño "A" · Turno tarde</p>
+            <p class="sub">{{ \App\Models\Configuracion::colegio() }}@if(\App\Models\Configuracion::valor('codigo_sie')) · SIE {{ \App\Models\Configuracion::valor('codigo_sie') }}@endif · Turno tarde</p>
             <p class="sub">
                 Del {{ \Carbon\Carbon::parse($fechaDesde)->format('d/m/Y') }}
                 al {{ \Carbon\Carbon::parse($fechaHasta)->format('d/m/Y') }} ·

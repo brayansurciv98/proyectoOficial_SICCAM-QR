@@ -32,7 +32,8 @@
                     </div>
                     <div class="form-group">
                         <label>CI</label>
-                        <input type="text" name="ci" class="form-control" value="{{ old('ci') }}" inputmode="numeric">
+                        <input type="text" name="ci" class="form-control" value="{{ old('ci') }}" inputmode="numeric" maxlength="10" pattern="[0-9]{5,10}" title="Entre 5 y 10 números">
+                        <small class="form-text text-muted">CI o correo obligatorio: el docente los usa para iniciar sesión.</small>
                     </div>
                     <div class="form-group">
                         <label>Email</label>
@@ -40,7 +41,7 @@
                     </div>
                     <div class="form-group">
                         <label>Teléfono</label>
-                        <input type="text" name="telefono" class="form-control" value="{{ old('telefono') }}" inputmode="numeric">
+                        <input type="text" name="telefono" class="form-control" value="{{ old('telefono') }}" inputmode="numeric" maxlength="8" pattern="[0-9]{7,8}" title="7 u 8 números">
                     </div>
                     <div class="form-group">
                         <label>Materia *</label>

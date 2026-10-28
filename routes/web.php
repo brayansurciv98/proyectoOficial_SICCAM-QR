@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EstudianteController;
 use App\Http\Controllers\DashboardController;
@@ -42,11 +43,20 @@ Route::post('/', function (Request $request) {
     $password = $data['password'];
     $remember = $request->boolean('remember');
 
+    // Máximo 5 intentos fallidos por minuto para el mismo usuario y equipo
+    $llave = 'login:' . mb_strtolower($login) . '|' . $request->ip();
+    if (RateLimiter::tooManyAttempts($llave, 5)) {
+        return back()->withErrors([
+            'email' => 'Demasiados intentos fallidos. Espere ' . RateLimiter::availableIn($llave) . ' segundos e intente de nuevo.',
+        ])->onlyInput('email');
+    }
+
     // 1) ADMIN (users)
     if (Auth::guard('web')->attempt(
         ['email' => $login, 'password' => $password],
         $remember
     )) {
+        RateLimiter::clear($llave);
         $request->session()->regenerate();
         $request->session()->put('tipo_usuario', 'admin');
         return redirect()->intended('/dashboard');
@@ -69,12 +79,15 @@ Route::post('/', function (Request $request) {
         }
 
         if ($ok) {
+            RateLimiter::clear($llave);
             Auth::guard('docente')->login($docente, $remember);
             $request->session()->regenerate();
             $request->session()->put('tipo_usuario', 'docente');
             return redirect()->route('docente.dashboard');
         }
     }
+
+    RateLimiter::hit($llave, 60);
 
     return back()->withErrors([
         'email' => 'Las credenciales no coinciden con nuestros registros.',

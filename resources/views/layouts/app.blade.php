@@ -63,7 +63,7 @@
             </li>
             <li class="nav-item d-none d-sm-inline-block">
                 <span class="nav-link fw-bold" style="color: #1a5f2a !important;">
-                    <h4 class="mb-0">U.E. René Barrientos Ortuño "A"</h4>
+                    <h4 class="mb-0">{{ \App\Models\Configuracion::colegio(true) }}</h4>
                 </span>
             </li>
         </ul>

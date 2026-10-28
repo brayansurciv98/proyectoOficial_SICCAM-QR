@@ -10,7 +10,7 @@
         <div class="card border-0 shadow-sm text-white mb-4" style="background: linear-gradient(135deg, var(--verde-principal), var(--verde-claro)); border-radius: 12px;">
             <div class="card-body p-4">
                 <h4 class="font-weight-bold mb-1">Bienvenido al Sistema de Control de Asistencia</h4>
-                <p class="mb-0 opacity-75">Unidad Educativa René Barrientos Ortuño "A"</p>
+                <p class="mb-0 opacity-75">{{ \App\Models\Configuracion::colegio() }}</p>
             </div>
         </div>
     </div>

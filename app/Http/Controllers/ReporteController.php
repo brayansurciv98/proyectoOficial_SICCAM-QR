@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Asistencia;
+use App\Models\Configuracion;
 use App\Models\Estudiante;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -91,7 +92,7 @@ class ReporteController extends Controller
 
         $titulos = [
             1 => ['REPORTE DE ASISTENCIA — ' . mb_strtoupper(self::TIPOS[$d['tipoReporte']], 'UTF-8'), 15, true, '1A5F2A'],
-            2 => ['Unidad Educativa René Barrientos Ortuño "A" · Turno tarde · SICCAM-QR', 11, false, '555555'],
+            2 => [Configuracion::colegio() . ' · Turno tarde · SICCAM-QR', 11, false, '555555'],
             3 => ['Periodo: ' . $periodo . '     |     Curso: ' . $curso, 10, false, '555555'],
         ];
         foreach ($titulos as $fila => [$texto, $tamano, $negrita, $color]) {
@@ -293,11 +294,19 @@ class ReporteController extends Controller
     /**
      * Calcula todo lo que muestran la pantalla, el PDF y el Excel.
      */
+    private function fechaValida(?string $fecha, Carbon $defecto): string
+    {
+        $valida = $fecha ? \DateTime::createFromFormat('!Y-m-d', $fecha) : false;
+
+        return ($valida && $valida->format('Y-m-d') === $fecha) ? $fecha : $defecto->format('Y-m-d');
+    }
+
     private function datos(Request $request): array
     {
-        // 1. Filtros (por defecto: mes actual, todos los cursos, resumen general)
-        $fechaDesde = $request->get('fecha_desde', Carbon::now()->startOfMonth()->format('Y-m-d'));
-        $fechaHasta = $request->get('fecha_hasta', Carbon::now()->endOfMonth()->format('Y-m-d'));
+        // 1. Filtros (por defecto: mes actual, todos los cursos, resumen general).
+        // Una fecha mal escrita en la dirección se reemplaza por la de defecto en vez de dar error.
+        $fechaDesde = $this->fechaValida($request->get('fecha_desde'), Carbon::now()->startOfMonth());
+        $fechaHasta = $this->fechaValida($request->get('fecha_hasta'), Carbon::now()->endOfMonth());
         $cursoFiltro = $request->get('curso');
         $tipoReporte = $request->get('tipo_reporte', 'general');
 

@@ -6,6 +6,7 @@ use App\Models\Horario;
 use App\Models\Docente;
 use App\Models\Materia;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class HorarioController extends Controller
 {
@@ -66,14 +67,39 @@ class HorarioController extends Controller
             'curso'      => ['required', 'integer', 'min:1', 'max:6'],
             'paralelo'   => ['required', 'in:A,B,C'],
             'materia_id' => ['required', 'exists:materias,id'],
-            'docente_id' => ['required', 'exists:docentes,id'],
+            'docente_id' => ['required', Rule::exists('docentes', 'id')->where('estado', 'activo')],
+        ], [
+            'docente_id.exists' => 'El docente no existe o está inactivo.',
         ]);
 
-        $docente = Docente::findOrFail($request->docente_id);
+        $docente = Docente::with('cursos')->findOrFail($request->docente_id);
+        $grupo = $request->curso . '° ' . $request->paralelo;
 
         if ((int) $docente->materia_id !== (int) $request->materia_id) {
             return back()
                 ->withErrors(['materia_id' => 'La materia no corresponde al docente seleccionado.'])
+                ->withInput();
+        }
+
+        // Solo en los cursos que tiene asignados (si no, luego no podría tomar asistencia ni programar exámenes)
+        $asignado = $docente->cursos->contains(
+            fn ($c) => (int) $c->curso === (int) $request->curso && $c->paralelo === $request->paralelo
+        );
+        if (!$asignado) {
+            return back()
+                ->withErrors(['curso' => "El docente no tiene asignado {$grupo}. Agréguelo en Docentes → Editar."])
+                ->withInput();
+        }
+
+        // Un docente no puede estar en dos clases al mismo tiempo
+        $ocupado = Horario::where('docente_id', $docente->id)
+            ->where('dia', $request->dia)
+            ->where('bloque', $request->bloque)
+            ->first();
+        if ($ocupado) {
+            return back()
+                ->withErrors(['bloque' => "{$docente->nombres} {$docente->apellidos} ya tiene clase el "
+                    . Horario::nombreDia((int) $request->dia) . " en el {$request->bloque}° bloque (con {$ocupado->curso}° {$ocupado->paralelo})."])
                 ->withInput();
         }
 

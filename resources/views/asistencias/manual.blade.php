@@ -9,12 +9,22 @@
     <div class="alert alert-success">{{ session('success') }}</div>
 @endif
 
+@if($errors->any())
+    <div class="alert alert-danger">
+        <ul class="mb-0">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 <div class="card card-outline card-success shadow-sm mb-3">
     <div class="card-body">
         <form method="GET" action="{{ route('asistencias.manual') }}" class="row align-items-end">
             <div class="col-md-2 form-group mb-md-0">
                 <label>Fecha</label>
-                <input type="date" name="fecha" class="form-control" value="{{ $fecha }}">
+                <input type="date" name="fecha" class="form-control" value="{{ $fecha }}" max="{{ today()->toDateString() }}">
             </div>
             <div class="col-md-4 form-group mb-md-0">
                 <label>Buscar estudiante</label>

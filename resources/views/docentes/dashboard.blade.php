@@ -80,7 +80,7 @@
     </div>
     <div class="card-body p-0">
         @if($ausentesHoy->isEmpty())
-            <p class="text-muted p-3 mb-0">No hay ausentes registrados hoy. El cierre automático se hace a las 13:50.</p>
+            <p class="text-muted p-3 mb-0">No hay ausentes registrados hoy. El cierre automático se hace a las {{ \App\Models\Asistencia::horaAusencias(now())->format('H:i') }}.</p>
         @else
             <table class="table table-sm table-striped mb-0">
                 <thead>

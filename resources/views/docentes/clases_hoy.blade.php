@@ -67,7 +67,7 @@
                 HORARIO DE {{ mb_strtoupper($docente->nombres . ' ' . $docente->apellidos, 'UTF-8') }}
             </h3>
             <small class="text-muted">
-                Unidad Educativa René Barrientos Ortuño "A" · Turno tarde
+                {{ \App\Models\Configuracion::colegio() }} · Turno tarde
             </small>
         </div>
 

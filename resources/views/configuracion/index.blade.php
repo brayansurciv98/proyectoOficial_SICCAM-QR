@@ -5,7 +5,8 @@
 
 @section('content')
 @php
-    $tabActiva = request('tab', 'institucion');
+    // Tras un error de validación vuelve a la pestaña donde estaba el formulario
+    $tabActiva = request('tab', old('tab_active', 'institucion'));
 @endphp
 
 @if(session('success'))
@@ -14,6 +15,16 @@
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
+    </div>
+@endif
+
+@if($errors->any())
+    <div class="alert alert-danger shadow-sm mb-3">
+        <ul class="mb-0">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
     </div>
 @endif
 
@@ -57,27 +68,28 @@
                             <div class="row">
                                 <div class="col-md-6 form-group">
                                     <label>Nombre de la Unidad Educativa</label>
-                                    <input type="text" name="colegio_nombre" class="form-control" value="{{ $config['colegio_nombre'] ?? 'Unidad Educativa René Barrientos Ortuño \'A\'' }}" required>
+                                    <input type="text" name="colegio_nombre" class="form-control" maxlength="150" value="{{ old('colegio_nombre', $config['colegio_nombre'] ?? 'Unidad Educativa René Barrientos Ortuño "A"') }}" required>
+                                    <small class="form-text text-muted">Aparece en el panel, los reportes y las credenciales en PDF.</small>
                                 </div>
                                 <div class="col-md-6 form-group">
                                     <label>Código SIE</label>
-                                    <input type="text" name="codigo_sie" class="form-control" value="{{ $config['codigo_sie'] ?? '12345678' }}">
+                                    <input type="text" name="codigo_sie" class="form-control" inputmode="numeric" maxlength="10" pattern="[0-9]{6,10}" title="Entre 6 y 10 números" value="{{ old('codigo_sie', $config['codigo_sie'] ?? '') }}">
                                 </div>
                                 <div class="col-md-6 form-group">
                                     <label>Dirección</label>
-                                    <input type="text" name="colegio_direccion" class="form-control" value="{{ $config['colegio_direccion'] ?? 'Cochabamba - Bolivia' }}">
+                                    <input type="text" name="colegio_direccion" class="form-control" maxlength="200" value="{{ old('colegio_direccion', $config['colegio_direccion'] ?? 'Cochabamba - Bolivia') }}">
                                 </div>
                                 <div class="col-md-6 form-group">
                                     <label>Teléfono</label>
-                                    <input type="text" name="colegio_telefono" class="form-control" value="{{ $config['colegio_telefono'] ?? '4-1234567' }}">
+                                    <input type="text" name="colegio_telefono" class="form-control" maxlength="15" value="{{ old('colegio_telefono', $config['colegio_telefono'] ?? '') }}" placeholder="Ej. 4-1234567">
                                 </div>
                                 <div class="col-md-6 form-group">
                                     <label>Correo institucional</label>
-                                    <input type="email" name="colegio_email" class="form-control" value="{{ $config['colegio_email'] ?? 'info@renebarrientos.edu.bo' }}">
+                                    <input type="email" name="colegio_email" class="form-control" maxlength="150" value="{{ old('colegio_email', $config['colegio_email'] ?? '') }}">
                                 </div>
                                 <div class="col-md-6 form-group">
                                     <label>Director / Directora</label>
-                                    <input type="text" name="colegio_director" class="form-control" value="{{ $config['colegio_director'] ?? '' }}" placeholder="Nombre de la máxima autoridad">
+                                    <input type="text" name="colegio_director" class="form-control" maxlength="150" value="{{ old('colegio_director', $config['colegio_director'] ?? '') }}" placeholder="Nombre de la máxima autoridad">
                                 </div>
                             </div>
                             <button type="submit" class="btn btn-success font-weight-bold">
@@ -100,17 +112,19 @@
                             <input type="hidden" name="tab_active" value="horarios">
                             <div class="row">
                                 <div class="col-md-4 form-group">
-                                    <label>Hora de Ingreso (Puntual)</label>
-                                    <input type="time" name="hora_ingreso" class="form-control" value="{{ $config['hora_ingreso'] ?? '13:30' }}" required>
-                                    <small class="form-text text-muted">Presente hasta esta hora + la tolerancia (pestaña Parámetros); después, tardanza.</small>
+                                    <label>Hora de Ingreso</label>
+                                    <input type="time" name="hora_ingreso" class="form-control" value="{{ old('hora_ingreso', substr($config['hora_ingreso'] ?? '13:30', 0, 5)) }}" required>
+                                    <small class="form-text text-muted">Más la tolerancia (pestaña Parámetros) es el límite para llegar puntual.</small>
                                 </div>
                                 <div class="col-md-4 form-group">
-                                    <label>Hora Límite de Atraso</label>
-                                    <input type="time" name="hora_limite_atraso" class="form-control" value="{{ $config['hora_limite_atraso'] ?? '13:45' }}" required>
+                                    <label>Presente hasta</label>
+                                    <input type="text" class="form-control" value="{{ $presenteHasta }}" readonly>
+                                    <small class="form-text text-muted">Se calcula solo: hora de ingreso + tolerancia. Después, tardanza.</small>
                                 </div>
                                 <div class="col-md-4 form-group">
-                                    <label>Cierre de Registro</label>
-                                    <input type="time" name="hora_cierre_registro" class="form-control" value="{{ $config['hora_cierre_registro'] ?? '18:45' }}" required>
+                                    <label>Marcar ausencias a las</label>
+                                    <input type="time" name="hora_marcar_ausencias" class="form-control" value="{{ old('hora_marcar_ausencias', $horaAusencias) }}" required>
+                                    <small class="form-text text-muted">Quien no registró su ingreso queda como ausente y se avisa a su tutor.</small>
                                 </div>
                             </div>
                             <button type="submit" class="btn btn-success font-weight-bold">
@@ -134,22 +148,23 @@
                             <div class="row">
                                 <div class="col-md-6 form-group">
                                     <label>Tolerancia (Minutos)</label>
-                                    <input type="number" name="tolerancia_minutos" class="form-control" min="0" max="60" value="{{ $config['tolerancia_minutos'] ?? '15' }}" required>
+                                    <input type="number" name="tolerancia_minutos" class="form-control" min="0" max="60" step="1" value="{{ old('tolerancia_minutos', $config['tolerancia_minutos'] ?? '15') }}" required>
                                 </div>
                                 <div class="col-md-6 form-group">
-                                    <label>Notificar Ausencia Automáticamente</label>
+                                    <label>Avisar a los tutores las ausencias</label>
+                                    @php $notificar = old('notificar_ausencia', $config['notificar_ausencia'] ?? 'si'); @endphp
                                     <select name="notificar_ausencia" class="form-control custom-select">
-                                        <option value="si" {{ ($config['notificar_ausencia'] ?? 'si') === 'si' ? 'selected' : '' }}>Sí</option>
-                                        <option value="no" {{ ($config['notificar_ausencia'] ?? 'si') === 'no' ? 'selected' : '' }}>No</option>
+                                        <option value="si" {{ $notificar === 'si' ? 'selected' : '' }}>Sí</option>
+                                        <option value="no" {{ $notificar === 'no' ? 'selected' : '' }}>No</option>
                                     </select>
+                                    <small class="form-text text-muted">Si elige "No", las ausencias se registran igual, pero sin notificación.</small>
                                 </div>
-                                <div class="col-md-6 form-group">
-                                    <label>Canal de Notificación</label>
-                                    <select name="canal_notificacion" class="form-control custom-select">
-                                        <option value="email_whatsapp" {{ ($config['canal_notificacion'] ?? 'email_whatsapp') === 'email_whatsapp' ? 'selected' : '' }}>Email y WhatsApp</option>
-                                        <option value="email" {{ ($config['canal_notificacion'] ?? '') === 'email' ? 'selected' : '' }}>Solo Email</option>
-                                        <option value="whatsapp" {{ ($config['canal_notificacion'] ?? '') === 'whatsapp' ? 'selected' : '' }}>Solo WhatsApp</option>
-                                    </select>
+                                <div class="col-md-12 form-group mb-0">
+                                    <label>Canal de notificación</label>
+                                    <p class="form-control-plaintext pt-0">
+                                        <i class="bi bi-phone text-success mr-1"></i>
+                                        Notificación push en la app <strong>SICCAM Tutor</strong> (Firebase Cloud Messaging).
+                                    </p>
                                 </div>
                             </div>
                             <button type="submit" class="btn btn-success font-weight-bold">

@@ -61,7 +61,7 @@
                 <h2 class="mb-0" style="letter-spacing: 2px;">
                     {{ request('curso') }}° {{ request('paralelo') }} SECUNDARIA
                 </h2>
-                <small class="text-muted">Unidad Educativa René Barrientos Ortuño "A" · Turno tarde</small>
+                <small class="text-muted">{{ \App\Models\Configuracion::colegio() }} · Turno tarde</small>
             </div>
 
             <div class="table-responsive">

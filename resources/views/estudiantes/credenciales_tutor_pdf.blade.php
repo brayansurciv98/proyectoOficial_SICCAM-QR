@@ -34,7 +34,7 @@
 <body>
     <div class="header">
         <h2>SICCAM-QR</h2>
-        <p>U.E. René Barrientos Ortuño "A"</p>
+        <p>{{ \App\Models\Configuracion::colegio(true) }}</p>
         <p><strong>Credenciales de Acceso - Tutor / Padre de Familia</strong></p>
     </div>
 
