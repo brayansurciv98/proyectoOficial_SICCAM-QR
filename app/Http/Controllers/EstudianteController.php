@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Configuracion;
 use App\Models\Estudiante;
 use App\Models\Tutor;
 use Illuminate\Http\Request;
@@ -360,6 +361,60 @@ class EstudianteController extends Controller
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('estudiantes.credenciales_tutor_pdf', $data);
 
         return $pdf->download($nombreArchivo);
+    }
+
+    /**
+     * Credenciales QR para imprimir y recortar (tamaño carnet, 8 por hoja carta):
+     * de un curso/paralelo, de todos los activos o de un solo estudiante.
+     */
+    public function credencialesQrPdf(Request $request)
+    {
+        $datos = $request->validate([
+            'curso'      => ['nullable', 'integer', 'min:1', 'max:6'],
+            'paralelo'   => ['nullable', 'in:A,B,C'],
+            'estudiante' => ['nullable', 'integer', 'exists:estudiantes,id'],
+        ]);
+
+        $estudiantes = Estudiante::where('estado', 'activo')
+            ->when($datos['estudiante'] ?? null, fn ($q, $id) => $q->whereKey($id))
+            ->when($datos['curso'] ?? null, fn ($q, $curso) => $q->where('curso', $curso))
+            ->when($datos['paralelo'] ?? null, fn ($q, $paralelo) => $q->where('paralelo', $paralelo))
+            ->orderBy('curso')->orderBy('paralelo')->orderBy('apellidos')->orderBy('nombres')
+            ->get();
+
+        if ($estudiantes->isEmpty()) {
+            return back()->withErrors(['credenciales' => 'No hay estudiantes activos en ese curso y paralelo.']);
+        }
+
+        // El QR se genera en el momento con el contenido actual del estudiante (el que lee la cámara)
+        $tarjetas = $estudiantes->map(fn ($e) => [
+            'nombres'   => $e->nombres,
+            'apellidos' => $e->apellidos,
+            'codigo'    => $e->codigo_estudiante,
+            'curso'     => $e->curso . '° ' . $e->paralelo,
+            'qr'        => 'data:image/png;base64,' . base64_encode(
+                Builder::create()->writer(new PngWriter())->data($e->qr_data ?: $e->codigo_estudiante)
+                    ->size(300)->margin(10)->build()->getString()
+            ),
+        ]);
+
+        $rutaLogo = public_path('images/Rene_Barrientos_Ortuno.jpg');
+        $logo = is_file($rutaLogo) ? 'data:image/jpeg;base64,' . base64_encode(file_get_contents($rutaLogo)) : null;
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('estudiantes.credenciales_qr_pdf', [
+            'filas'   => $tarjetas->chunk(2),
+            'colegio' => Configuracion::colegio(true),
+            'gestion' => now()->year,
+            'logo'    => $logo,
+        ])->setPaper('letter');
+
+        $nombre = 'Credenciales_QR'
+            . (isset($datos['estudiante']) ? '_' . $estudiantes->first()->codigo_estudiante : '')
+            . (isset($datos['curso']) ? '_' . $datos['curso'] . ($datos['paralelo'] ?? '') : '')
+            . '.pdf';
+
+        // Se abre en el navegador, listo para imprimir
+        return $pdf->stream($nombre);
     }
 
     /**

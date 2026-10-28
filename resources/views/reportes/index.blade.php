@@ -15,11 +15,14 @@
 @endphp
 
 <!-- Encabezado con acciones -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <div class="mr-3">
         <h5 class="mb-1 font-weight-bold text-dark">Reportes de Asistencia</h5>
         <small class="text-muted">Generación y consulta de reportes detallados</small>
     </div>
+    <a href="{{ route('reportes.resultados') }}" class="btn btn-outline-success btn-sm mt-2 mt-md-0">
+        <i class="bi bi-graph-up mr-1"></i> Resultados del sistema
+    </a>
 </div>
 
 <!-- Card de Filtros del reporte -->

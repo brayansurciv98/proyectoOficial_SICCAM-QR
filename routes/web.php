@@ -9,6 +9,7 @@ use App\Http\Controllers\EstudianteController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AsistenciaController;
 use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\ResultadosController;
 use App\Http\Controllers\ComunicadoController;
 use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\DocenteController;
@@ -114,6 +115,9 @@ Route::middleware(['tipo:admin'])->group(function () {
     // Estudiantes
     Route::patch('/estudiantes/{estudiante}/toggle-estado', [EstudianteController::class, 'toggleEstado'])
         ->name('estudiantes.toggleEstado');
+    // Credenciales QR para imprimir (antes del resource para que no la tome como {estudiante})
+    Route::get('/estudiantes/credenciales-qr/pdf', [EstudianteController::class, 'credencialesQrPdf'])
+        ->name('estudiantes.credenciales.qr');
     Route::resource('estudiantes', EstudianteController::class);
     Route::get('/estudiantes/{estudiante}/tutor/credenciales', [EstudianteController::class, 'credencialesTutor'])
     ->name('estudiantes.tutor.credenciales');
@@ -148,6 +152,8 @@ Route::middleware(['tipo:admin'])->group(function () {
     Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
     Route::get('/reportes/pdf', [ReporteController::class, 'pdf'])->name('reportes.pdf');
     Route::get('/reportes/excel', [ReporteController::class, 'excel'])->name('reportes.excel');
+    Route::get('/reportes/resultados', [ResultadosController::class, 'index'])->name('reportes.resultados');
+    Route::get('/reportes/resultados/pdf', [ResultadosController::class, 'pdf'])->name('reportes.resultados.pdf');
 
     // Comunicados
     Route::resource('comunicados', ComunicadoController::class)->only(['index', 'store', 'destroy']);

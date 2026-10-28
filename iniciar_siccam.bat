@@ -25,7 +25,7 @@ start "SICCAM - Reverb 8080" cmd /k php artisan reverb:start
 rem 4. Envio de notificaciones push
 start "SICCAM - Notificaciones" cmd /k php artisan queue:work
 
-rem 5. Cierre automatico de asistencia (13:50)
+rem 5. Cierre automatico de asistencia (a la hora de Configuracion)
 start "SICCAM - Tareas programadas" cmd /k php artisan schedule:work
 
 timeout /t 4 /nobreak >nul
