@@ -7,7 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class Docente extends Authenticatable
 {
     protected $fillable = [
-        'nombres', 'apellidos', 'ci', 'email', 'telefono',
+        'nombres', 'apellidos', 'genero', 'ci', 'email', 'telefono',
         'materia_id', 'password', 'clave_inicial', 'estado',
     ];
 

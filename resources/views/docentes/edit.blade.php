@@ -71,6 +71,17 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="genero">Género</label>
+                        @php $generoActual = old('genero', $docente->genero); @endphp
+                        <select name="genero" id="genero" class="form-control @error('genero') is-invalid @enderror">
+                            <option value="">Seleccione...</option>
+                            <option value="M" {{ $generoActual === 'M' ? 'selected' : '' }}>Masculino</option>
+                            <option value="F" {{ $generoActual === 'F' ? 'selected' : '' }}>Femenino</option>
+                            <option value="Otro" {{ $generoActual === 'Otro' ? 'selected' : '' }}>Otro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
                         <label for="ci">CI</label>
                         <input type="text" name="ci" id="ci"
                                class="form-control @error('ci') is-invalid @enderror"

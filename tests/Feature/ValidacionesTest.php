@@ -90,6 +90,33 @@ class ValidacionesTest extends TestCase
         $this->assertSame(0, Docente::count());
     }
 
+    public function test_docente_guarda_su_genero_y_se_muestra_su_icono(): void
+    {
+        $admin = $this->admin();
+
+        $this->actingAs($admin, 'web')
+            ->post(route('docentes.store'), [
+                'nombres' => 'Rosa', 'apellidos' => 'Choque', 'genero' => 'F', 'ci' => '7654321',
+                'materia_id' => $this->materia()->id,
+                'cursos' => [['curso' => 4, 'paralelo' => 'A']],
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('F', Docente::first()->genero);
+
+        // Ícono de mujer: el pelo largo detrás de la cabeza
+        $this->actingAs($admin, 'web')->get(route('docentes.index'))
+            ->assertSee('M18.5 30 C17 15', false);
+
+        $this->actingAs($admin, 'web')
+            ->post(route('docentes.store'), [
+                'nombres' => 'Luis', 'apellidos' => 'Rojas', 'genero' => 'X', 'ci' => '7654322',
+                'materia_id' => Docente::first()->materia_id,
+                'cursos' => [['curso' => 5, 'paralelo' => 'B']],
+            ])
+            ->assertSessionHasErrors('genero');
+    }
+
     public function test_docente_sin_ci_ni_correo_no_se_registra(): void
     {
         $this->actingAs($this->admin(), 'web')
@@ -314,8 +341,13 @@ class ValidacionesTest extends TestCase
         foreach ([
             route('dashboard'),
             route('configuracion.index', ['tab' => 'horarios']),
+            route('estudiantes.index'),
+            route('estudiantes.show', $estudiante),
             route('estudiantes.create'),
             route('estudiantes.edit', $estudiante),
+            route('reportes.resultados'),
+            route('asistencias.index'),
+            route('docentes.index'),
             route('docentes.create'),
             route('docentes.edit', $docente),
             route('horarios.create'),
@@ -328,6 +360,12 @@ class ValidacionesTest extends TestCase
         }
 
         $this->get(route('configuracion.index'))->assertSee('Marcar ausencias a las')->assertDontSee('WhatsApp');
+
+        // Íconos de persona según el rol (estudiante y su tutor, docente)
+        $this->get(route('estudiantes.index'))
+            ->assertSee('aria-label="Estudiante"', false)
+            ->assertSee('aria-label="Tutor"', false);
+        $this->get(route('docentes.index'))->assertSee('aria-label="Docente"', false);
     }
 
     // ---------- Inicio de sesión ----------

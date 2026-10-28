@@ -31,6 +31,15 @@
                         <input type="text" name="apellidos" class="form-control" value="{{ old('apellidos') }}" required>
                     </div>
                     <div class="form-group">
+                        <label>Género</label>
+                        <select name="genero" class="form-control">
+                            <option value="">Seleccione...</option>
+                            <option value="M" {{ old('genero') === 'M' ? 'selected' : '' }}>Masculino</option>
+                            <option value="F" {{ old('genero') === 'F' ? 'selected' : '' }}>Femenino</option>
+                            <option value="Otro" {{ old('genero') === 'Otro' ? 'selected' : '' }}>Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>CI</label>
                         <input type="text" name="ci" class="form-control" value="{{ old('ci') }}" inputmode="numeric" maxlength="10" pattern="[0-9]{5,10}" title="Entre 5 y 10 números">
                         <small class="form-text text-muted">CI o correo obligatorio: el docente los usa para iniciar sesión.</small>

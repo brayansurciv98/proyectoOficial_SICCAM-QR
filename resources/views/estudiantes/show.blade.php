@@ -38,6 +38,7 @@
                 </h3>
             </div>
             <div class="card-body">
+                <x-avatar rol="estudiante" :genero="$estudiante->genero" tam="84" class="d-block mx-auto mb-2 shadow-sm rounded-circle" />
                 <div class="mb-3">
                     @if($estudiante->estado === 'activo')
                         <span class="badge badge-success px-3 py-2 font-weight-normal">
@@ -76,9 +77,10 @@
                             <i class="bi bi-download mr-1"></i> Descargar QR
                         </a>
                     @endif
-                    <button onclick="window.print();" class="btn btn-outline-dark btn-sm btn-block mt-2">
+                    <a href="{{ route('estudiantes.credenciales.qr', ['estudiante' => $estudiante->id]) }}" target="_blank"
+                       class="btn btn-outline-dark btn-sm btn-block mt-2">
                         <i class="bi bi-printer mr-1"></i> Imprimir Credencial
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -170,7 +172,10 @@
                     <div class="row">
                         <div class="col-sm-6 mb-3">
                             <label class="text-muted small font-weight-bold d-block">NOMBRE COMPLETO</label>
-                            <span class="h6 font-weight-bold text-dark">{{ $tutor->nombres }} {{ $tutor->apellidos }}</span>
+                            <div class="d-flex align-items-center">
+                                <x-avatar rol="tutor" :parentesco="$tutor->pivot->parentesco ?? null" tam="34" class="mr-2" />
+                                <span class="h6 font-weight-bold text-dark mb-0">{{ $tutor->nombres }} {{ $tutor->apellidos }}</span>
+                            </div>
                         </div>
                         <div class="col-sm-6 mb-3">
                             <label class="text-muted small font-weight-bold d-block">PARENTESCO</label>

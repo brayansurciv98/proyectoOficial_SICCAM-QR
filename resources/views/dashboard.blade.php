@@ -108,6 +108,7 @@
                             @forelse($ultimasAsistencias as $asistencia)
                                 <tr>
                                     <td class="pl-3 font-weight-bold">
+                                        <x-avatar rol="estudiante" :genero="$asistencia->estudiante->genero" tam="28" class="mr-2" />
                                         {{ $asistencia->estudiante->nombres }} {{ $asistencia->estudiante->apellidos }}
                                     </td>
                                     <td>

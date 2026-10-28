@@ -57,11 +57,17 @@ document.addEventListener('DOMContentLoaded', function () {
             const cursoTexto = estudiante.curso ? `${estudiante.curso}º de Secundaria` : '';
             const paraleloTexto = estudiante.paralelo ? `- ${estudiante.paralelo}` : '';
 
+            // Ícono según el género, copiado de las plantillas de la vista (cada copia con su propio id)
+            const plantilla = document.getElementById('avatar-estudiante-' + (['M', 'F'].includes(estudiante.genero) ? estudiante.genero : ''));
+            const avatar = plantilla
+                ? plantilla.innerHTML.replace(/av[A-Za-z0-9]{10}/g, 'av' + Math.random().toString(36).slice(2, 12))
+                : '';
+
             // Generar la estructura de la fila HTML
             const nuevaFila = `
                 <tr class="table-success" style="transition: background-color 2s ease;">
                     <td class="pl-4 font-weight-bold text-primary">${estudiante.codigo_estudiante || 'N/A'}</td>
-                    <td>${estudiante.nombres || ''} ${estudiante.apellidos || ''}</td>
+                    <td>${avatar}${estudiante.nombres || ''} ${estudiante.apellidos || ''}</td>
                     <td>${cursoTexto} ${paraleloTexto}</td>
                     <td>${new Date().toLocaleDateString('es-ES')}</td>
                     <td class="font-weight-bold">${hora}</td>

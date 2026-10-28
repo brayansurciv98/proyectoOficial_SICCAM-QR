@@ -47,7 +47,12 @@
             <tbody>
                 @forelse($docentes as $docente)
                     <tr>
-                        <td class="font-weight-bold">{{ $docente->nombres }} {{ $docente->apellidos }}</td>
+                        <td class="font-weight-bold">
+                            <div class="d-flex align-items-center">
+                                <x-avatar rol="docente" :genero="$docente->genero ?? null" tam="34" class="mr-2" />
+                                {{ $docente->nombres }} {{ $docente->apellidos }}
+                            </div>
+                        </td>
                         <td>{{ $docente->ci ?? '—' }}</td>
                         <td>{{ $docente->materia->nombre ?? '—' }}</td>
                         <td>

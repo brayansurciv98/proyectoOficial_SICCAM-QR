@@ -90,8 +90,13 @@
                         <tr>
                             <td>{{ $i + 1 }}</td>
                             <td class="font-weight-bold">
-                                {{ $est->apellidos }} {{ $est->nombres }}<br>
-                                <small class="text-muted">{{ $est->codigo_estudiante }}</small>
+                                <div class="d-flex align-items-center">
+                                    <x-avatar rol="estudiante" :genero="$est->genero" tam="32" class="mr-2" />
+                                    <div>
+                                        {{ $est->apellidos }} {{ $est->nombres }}<br>
+                                        <small class="text-muted">{{ $est->codigo_estudiante }}</small>
+                                    </div>
+                                </div>
                             </td>
                             <td>
                                 @if(!$ingreso)

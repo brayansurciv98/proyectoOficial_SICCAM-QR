@@ -51,6 +51,7 @@ class AsistenciaRegistrada implements ShouldBroadcastNow
                     'apellidos'         => $estudiante?->apellidos,
                     'curso'             => $estudiante?->curso,
                     'paralelo'          => $estudiante?->paralelo,
+                    'genero'            => $estudiante?->genero, // para el ícono de la fila en tiempo real
                 ],
             ],
         ];

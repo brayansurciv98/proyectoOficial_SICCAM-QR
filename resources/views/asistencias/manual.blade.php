@@ -99,7 +99,7 @@
                         @endphp
                         <tr>
                             <td>{{ $est->codigo_estudiante }}</td>
-                            <td class="font-weight-bold">{{ $est->apellidos }} {{ $est->nombres }}</td>
+                            <td class="font-weight-bold"><x-avatar rol="estudiante" :genero="$est->genero" tam="28" class="mr-2" />{{ $est->apellidos }} {{ $est->nombres }}</td>
                             <td>{{ $est->curso }}° {{ $est->paralelo }}</td>
                             <td>
                                 <div class="btn-group btn-group-toggle" data-toggle="buttons">

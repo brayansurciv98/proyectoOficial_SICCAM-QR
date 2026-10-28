@@ -38,6 +38,7 @@ class DocenteController extends Controller
         $docente = Docente::create([
             'nombres'       => $this->capitalizar($request->nombres),
             'apellidos'     => $this->capitalizar($request->apellidos),
+            'genero'        => $request->genero ?: null,
             'ci'            => $request->ci ? trim($request->ci) : null,
             'email'         => $request->email ? trim($request->email) : null,
             'telefono'      => $request->telefono ? trim($request->telefono) : null,
@@ -103,6 +104,7 @@ class DocenteController extends Controller
         $docente->update([
             'nombres'    => $this->capitalizar($request->nombres),
             'apellidos'  => $this->capitalizar($request->apellidos),
+            'genero'     => $request->genero ?: null,
             'ci'         => $request->ci ? trim($request->ci) : null,
             'email'      => $request->email ? trim($request->email) : null,
             'telefono'   => $request->telefono ? trim($request->telefono) : null,
@@ -189,6 +191,7 @@ class DocenteController extends Controller
         return [
             'nombres'    => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
             'apellidos'  => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s]+$/u'],
+            'genero'     => ['nullable', 'in:M,F,Otro'],
             // Inicia sesión con su CI o su correo: al menos uno es obligatorio
             'ci'         => ['nullable', 'required_without:email', 'digits_between:5,10', Rule::unique('docentes', 'ci')->ignore($id)],
             'email'      => ['nullable', 'required_without:ci', 'email', 'max:150', Rule::unique('docentes', 'email')->ignore($id)],

@@ -122,7 +122,7 @@
                     @forelse($asistencias as $asistencia)
                         <tr>
                             <td class="pl-4 font-weight-bold text-primary">{{ $asistencia->estudiante->codigo_estudiante ?? 'N/A' }}</td>
-                            <td>{{ $asistencia->estudiante->nombres ?? '' }} {{ $asistencia->estudiante->apellidos ?? '' }}</td>
+                            <td><x-avatar rol="estudiante" :genero="$asistencia->estudiante->genero ?? null" tam="28" class="mr-2" />{{ $asistencia->estudiante->nombres ?? '' }} {{ $asistencia->estudiante->apellidos ?? '' }}</td>
                             <td>
                                 {{ $asistencia->estudiante->curso ? $asistencia->estudiante->curso . 'º de Secundaria' : '' }} 
                                 {{ isset($asistencia->estudiante->paralelo) ? '- ' . $asistencia->estudiante->paralelo : '' }}
@@ -168,6 +168,10 @@
         </div>
     @endif
 </div>
+{{-- Íconos para las filas que llegan en tiempo real (los usa public/js/asistencias.js) --}}
+<template id="avatar-estudiante-M"><x-avatar rol="estudiante" genero="M" tam="28" class="mr-2" /></template>
+<template id="avatar-estudiante-F"><x-avatar rol="estudiante" genero="F" tam="28" class="mr-2" /></template>
+<template id="avatar-estudiante-"><x-avatar rol="estudiante" tam="28" class="mr-2" /></template>
 @endsection
 
 <!-- AQUÍ AL FINAL SE AGREGA EL SCRIPTS DE WEBSOCKETS -->

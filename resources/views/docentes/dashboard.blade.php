@@ -6,7 +6,8 @@
 @section('content')
 <div class="card card-outline card-success shadow-sm">
     <div class="card-body">
-        <h4 class="font-weight-bold mb-3">
+        <h4 class="font-weight-bold mb-3 d-flex align-items-center">
+            <x-avatar rol="docente" :genero="$docente->genero ?? null" tam="48" class="mr-3" />
             Bienvenido, {{ $docente->nombres }} {{ $docente->apellidos }}
         </h4>
 
@@ -94,7 +95,7 @@
                     @foreach($ausentesHoy as $a)
                         <tr>
                             <td class="pl-3">{{ $a->estudiante->curso }}° {{ $a->estudiante->paralelo }}</td>
-                            <td>{{ $a->estudiante->apellidos }} {{ $a->estudiante->nombres }}</td>
+                            <td><x-avatar rol="estudiante" :genero="$a->estudiante->genero" tam="26" class="mr-2" />{{ $a->estudiante->apellidos }} {{ $a->estudiante->nombres }}</td>
                             <td>{{ $a->estudiante->codigo_estudiante }}</td>
                         </tr>
                     @endforeach

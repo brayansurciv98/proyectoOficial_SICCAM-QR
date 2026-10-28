@@ -15,6 +15,10 @@
     </div>
 @endif
 
+@if($errors->has('credenciales'))
+    <div class="alert alert-warning shadow-sm mb-3">{{ $errors->first('credenciales') }}</div>
+@endif
+
 <!-- Tarjeta Superior: Buscador, Filtros y Botón Nuevo -->
 <div class="card card-success card-outline shadow-sm mb-4">
     <div class="card-body">
@@ -80,9 +84,53 @@
                 <a href="{{ route('estudiantes.create') }}" class="btn btn-success font-weight-bold shadow-sm btn-block text-nowrap">
                     <i class="bi bi-person-plus-fill mr-1"></i> Nuevo
                 </a>
+                <button type="button" class="btn btn-outline-success btn-sm btn-block text-nowrap mt-2"
+                        data-toggle="modal" data-target="#modalCredencialesQr">
+                    <i class="bi bi-printer mr-1"></i> Credenciales QR
+                </button>
             </div>
 
         </div>
+    </div>
+</div>
+
+<!-- Modal: imprimir credenciales QR por curso -->
+<div class="modal fade" id="modalCredencialesQr" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+        <form class="modal-content" method="GET" action="{{ route('estudiantes.credenciales.qr') }}" target="_blank">
+            <div class="modal-header bg-success text-white py-2">
+                <h6 class="modal-title font-weight-bold"><i class="bi bi-printer mr-1"></i> Imprimir credenciales QR</h6>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="small font-weight-bold">Curso</label>
+                    <select name="curso" class="form-control">
+                        <option value="">Todos</option>
+                        @for($i = 1; $i <= 6; $i++)
+                            <option value="{{ $i }}">{{ $i }}° Secundaria</option>
+                        @endfor
+                    </select>
+                </div>
+                <div class="form-group mb-1">
+                    <label class="small font-weight-bold">Paralelo</label>
+                    <select name="paralelo" class="form-control">
+                        <option value="">Todos</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                    </select>
+                </div>
+                <small class="text-muted">PDF tamaño carta: 8 credenciales por hoja (tamaño carnet), listas para recortar.</small>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="submit" class="btn btn-success btn-block">
+                    <i class="bi bi-file-earmark-pdf mr-1"></i> Generar PDF
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -122,12 +170,17 @@
 
                             <!-- Nombre Estudiante -->
                             <td class="align-middle">
-                                <strong class="text-dark d-block">{{ $estudiante->nombres }} {{ $estudiante->apellidos }}</strong>
-                                @if($estudiante->genero)
-                                    <small class="text-muted">
-                                        Género: {{ $estudiante->genero == 'M' ? 'Masculino' : 'Femenino' }}
-                                    </small>
-                                @endif
+                                <div class="d-flex align-items-center">
+                                    <x-avatar rol="estudiante" :genero="$estudiante->genero" tam="36" class="mr-2" />
+                                    <div>
+                                        <strong class="text-dark d-block">{{ $estudiante->nombres }} {{ $estudiante->apellidos }}</strong>
+                                        @if($estudiante->genero)
+                                            <small class="text-muted">
+                                                Género: {{ ['M' => 'Masculino', 'F' => 'Femenino'][$estudiante->genero] ?? 'Otro' }}
+                                            </small>
+                                        @endif
+                                    </div>
+                                </div>
                             </td>
 
                             <!-- CI -->
@@ -150,8 +203,13 @@
                             <!-- Tutor -->
                             <td class="align-middle">
                                 @if($tutor)
-                                    <span class="d-block font-weight-bold text-dark">{{ $tutor->nombres }} {{ $tutor->apellidos }}</span>
-                                    <small class="text-muted"><i class="bi bi-telephone mr-1"></i>{{ $tutor->telefono ?? 'Sin cel.' }}</small>
+                                    <div class="d-flex align-items-center">
+                                        <x-avatar rol="tutor" :parentesco="$tutor->pivot->parentesco ?? null" tam="30" class="mr-2" />
+                                        <div>
+                                            <span class="d-block font-weight-bold text-dark">{{ $tutor->nombres }} {{ $tutor->apellidos }}</span>
+                                            <small class="text-muted"><i class="bi bi-telephone mr-1"></i>{{ $tutor->telefono ?? 'Sin cel.' }}</small>
+                                        </div>
+                                    </div>
                                 @else
                                     <span class="badge badge-warning text-dark"><i class="bi bi-exclamation-triangle mr-1"></i> Sin tutor</span>
                                 @endif
